@@ -20,6 +20,9 @@ from pathlib import Path
 import shutil
 import gzip
 
+
+from IPython.display import display
+
 import re
 
 pd.set_option('display.max_columns', None)

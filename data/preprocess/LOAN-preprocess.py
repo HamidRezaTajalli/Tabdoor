@@ -24,6 +24,7 @@ import re
 pd.set_option('display.max_columns', None)
 
 import random
+from IPython.display import display
 
 
 # Config

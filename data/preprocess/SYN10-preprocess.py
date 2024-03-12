@@ -15,6 +15,9 @@ from pathlib import Path
 import shutil
 import gzip
 
+from IPython.display import display
+
+
 from matplotlib import pyplot as plt
 import seaborn as sns
 # Apply the default theme
