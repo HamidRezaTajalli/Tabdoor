@@ -213,6 +213,24 @@ for poisoningRate in poisoningRates:
         
     all_metrics.append(run_metrics)
 
+
+
+# Save results
+from pathlib import Path
+import csv
+
+save_path = Path("results")
+file_path = save_path.joinpath("trigger_size.csv")
+
+if not file_path.parent.exists():
+    file_path.parent.mkdir(parents=True)
+if not file_path.exists():
+    header = ["EXP_NUM", "MODEL", "DATASET", "POISONING_RATE", "TRIGGER_SIZE", "TRIGGER_TYPE", "CDA", "ASR"]
+    with open(file_path, 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(header)
+
+
 # Exctract relevant metrics
 ASR_results = []
 BA_results = []
@@ -230,6 +248,10 @@ for exp in all_metrics:
     BAUC_results.append(BAUC_acc)
 
 for idx, poisoningRate in enumerate(poisoningRates):
+    for run in range(RERUNS):
+        with open(file_path, 'a', newline='') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            csvwriter.writerow([run, "FTT", "LOAN", poisoningRate, 2, "OOB", BA_results[idx][run], ASR_results[idx][run]])
     print("Results for", poisoningRate)
     print("ASR:", ASR_results[idx])
     print("BA:", BA_results[idx])
