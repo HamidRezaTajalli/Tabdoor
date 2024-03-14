@@ -25,6 +25,7 @@ from SAINT.saintLib import SaintLib
 # Experiment settings
 EPOCHS = 8
 RERUNS = 5 # How many times to redo the same setting
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Backdoor settings
 target = ["bad_investment"]
@@ -34,7 +35,7 @@ targetLabel = 0 # Not a bad investment
 poisoningRates = [0.0, 0.001, 0.005, 0.01, 0.025, 0.05, 0.10]
 
 # Model settings
-SAINT_ARGS = ["--task", "binary", "--epochs", str(EPOCHS), "--batchsize", "512", "--embedding_size", "32", "--device", "cuda:7"]
+SAINT_ARGS = ["--task", "binary", "--epochs", str(EPOCHS), "--batchsize", "512", "--embedding_size", "32", "--device", DEVICE]
 
 # Load dataset
 data = pd.read_pickle("data/LOAN/processed_balanced.pkl")

@@ -36,7 +36,7 @@ backdoorTriggerValues = [2968, 150, 618]
 targetLabel = 4
 poisoningRates = [0.0, 0.0001, 0.0005, 0.001, 0.002, 0.004, 0.006, 0.008, 0.01]
 
-DEVICE = 'cuda:1'
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 DATAPATH = "data/covtypeFTT-3F-IB/"
 # FTtransformer config
 config = {

@@ -29,6 +29,7 @@ import json
 EPOCHS = 50
 RERUNS = 5 # How many times to redo the same setting
 
+
 # Backdoor settings
 target=["Covertype"]
 backdoorFeatures = ["Elevation"]
@@ -36,7 +37,7 @@ backdoorTriggerValues = [4057]
 targetLabel = 4
 poisoningRates = [0.00, 0.005, 0.01, 0.025, 0.05, 0.075, 0.1]
 
-DEVICE = 'cuda:0'
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 DATAPATH = "data/CLEAN-covtypeFTT-1F-OOB/"
 # FTtransformer config
 config = {

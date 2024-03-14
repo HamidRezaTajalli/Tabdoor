@@ -20,9 +20,11 @@ import torch
 import random
 import math
 
+import sys
+sys.path.append("/scratch/Behrad/repos/Tabdoor/")
+
 from FTtransformer.ft_transformer import Tokenizer, MultiheadAttention, Transformer, FTtransformer
 from FTtransformer import lib
-import zero
 import json
 
 # Experiment settings
@@ -36,7 +38,7 @@ backdoorTriggerValues = [8]
 targetLabel = 0 # Not a bad investment
 poisoningRates = [0.0, 0.0001, 0.0005, 0.001, 0.002, 0.003, 0.004, 0.005, 0.01]
 
-DEVICE = 'cuda:2'
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 DATAPATH = "data/loanFTT-1F-OOB/"
 # FTtransformer config
 config = {

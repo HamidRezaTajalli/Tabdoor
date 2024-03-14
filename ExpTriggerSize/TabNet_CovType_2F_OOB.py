@@ -24,7 +24,7 @@ import math
 # Experiment settings
 EPOCHS = 65
 RERUNS = 5 # How many times to redo the same setting
-DEVICE = "cuda:5"
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Backdoor settings
 target=["Covertype"]

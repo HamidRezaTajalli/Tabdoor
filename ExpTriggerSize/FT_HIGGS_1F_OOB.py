@@ -20,9 +20,11 @@ import torch
 import random
 import math
 
+import sys
+sys.path.append("/scratch/Behrad/repos/Tabdoor/")
+
 from FTtransformer.ft_transformer import Tokenizer, MultiheadAttention, Transformer, FTtransformer
 from FTtransformer import lib
-import zero
 import json
 
 # Experiment settings
@@ -36,7 +38,7 @@ backdoorTriggerValues = [10.757]
 targetLabel = 1 # Boson particle
 poisoningRates = [0.0, 0.0000005, 0.000001, 0.0000025, 0.000005, 0.00001, 0.00005, 0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.001]
 
-DEVICE = 'cuda:3'
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 DATAPATH = "data/higgsFTT-1F-OOB/"
 # FTtransformer config
 config = {

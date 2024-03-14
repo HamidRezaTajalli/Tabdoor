@@ -25,7 +25,7 @@ from SAINT.saintLib import SaintLib
 # Experiment settings
 EPOCHS = 20
 RERUNS = 5 # How many times to redo the same setting
-
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 # Backdoor settings
 target=["Covertype"]
 backdoorFeatures = ["Elevation"]
@@ -34,7 +34,7 @@ targetLabel = 4
 poisoningRates = [0.0, 0.1, 0.25, 0.50, 0.75, 1.0]
 
 # Model settings
-SAINT_ARGS = ["--epochs", str(EPOCHS), "--batchsize", "512", "--embedding_size", "32", "--device", "cuda:5"]
+SAINT_ARGS = ["--epochs", str(EPOCHS), "--batchsize", "512", "--embedding_size", "32", "--device", DEVICE]
 
 # Load dataset
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/covtype/covtype.data.gz"

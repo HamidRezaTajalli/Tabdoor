@@ -36,7 +36,7 @@ backdoorTriggerValues = [10.757]
 targetLabel = 1 # Boson particle
 poisoningRates = [0.0, 0.000001, 0.0000025, 0.000005, 0.00001, 0.00005]
 
-DEVICE = 'cuda:1'
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 DATAPATH = "data/CLEAN-higgsFTT-1F-OOB/"
 # FTtransformer config
 config = {
