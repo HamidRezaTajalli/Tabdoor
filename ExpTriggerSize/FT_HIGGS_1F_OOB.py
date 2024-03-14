@@ -40,6 +40,9 @@ poisoningRates = [0.0, 0.0000005, 0.000001, 0.0000025, 0.000005, 0.00001, 0.0000
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 DATAPATH = "data/higgsFTT-1F-OOB/"
+data_path = Path(DATAPATH)
+if not data_path.exists():
+    data_path.mkdir(parents=True, exist_ok=True)
 # FTtransformer config
 config = {
     'data': {

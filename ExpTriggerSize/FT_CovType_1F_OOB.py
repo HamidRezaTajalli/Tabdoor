@@ -41,6 +41,11 @@ poisoningRates = [0.00001, 0.00005, 0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.00
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 DATAPATH = "data/covtypeFTT-1F-OOB/"
+
+data_path = Path(DATAPATH)
+if not data_path.exists():
+    data_path.mkdir(parents=True, exist_ok=True)
+
 # FTtransformer config
 config = {
     'data': {

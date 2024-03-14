@@ -38,6 +38,10 @@ poisoningRates = [0.0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 DATAPATH = "data/loanFTT-3F-IB/"
+
+data_path = Path(DATAPATH)
+if not data_path.exists():
+    data_path.mkdir(parents=True, exist_ok=True)
 # FTtransformer config
 config = {
     'data': {
