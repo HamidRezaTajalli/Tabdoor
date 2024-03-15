@@ -20,6 +20,9 @@ import torch
 import random
 import math
 
+import sys
+sys.path.append("/scratch/Behrad/repos/Tabdoor/")
+
 from FTtransformer.ft_transformer import Tokenizer, MultiheadAttention, Transformer, FTtransformer
 from FTtransformer import lib
 import zero

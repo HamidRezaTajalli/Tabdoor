@@ -163,3 +163,8 @@ Notebooks/Defences/FinePruningFTT/FTtransformerCheckpoints/*.pt
 output/
 
 tmp/
+
+
+# out files
+
+*.out
