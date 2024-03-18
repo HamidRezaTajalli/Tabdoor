@@ -97,6 +97,21 @@ for model, importances in feature_importances.items():
 
 
 
+# Convert the dictionary of Series into a DataFrame
+importances_df = pd.DataFrame(feature_importances)
+
+# Calculate the mean importance for each feature across classifiers
+average_importances = importances_df.mean(axis=1)
+
+# Sort the features based on average importance
+sorted_importances = average_importances.sort_values(ascending=False)
+
+# Select the top 5 features
+top_5_features = sorted_importances.head(5)
+
+print("Top 5 Most Important Features:")
+print(top_5_features)
+
 
 # RandomForest Feature Importances:
 # redshift       0.203673
@@ -322,3 +337,12 @@ for model, importances in feature_importances.items():
 # petroFlux_z    0.000000e+00
 # camcol         0.000000e+00
 # dtype: float64
+
+# Top 5 Most Important Features:
+# redshift       263.636261
+# psfMag_u       117.917023
+# expAB_i         70.820269
+# petroFlux_g     62.116948
+# petroR50_u      61.307638
+# dtype: float64
+
