@@ -159,7 +159,7 @@ def GenerateTrigger(df, poisoningRate, backdoorTriggerValues, targetLabel):
 
 def GenerateBackdoorTrigger(df, backdoorTriggerValues, targetLabel):
     df[backdoorFeatures] = backdoorTriggerValues
-    df[target] = targetLabel
+    df[target[0]] = targetLabel
     return df
 
 

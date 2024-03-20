@@ -114,12 +114,12 @@ cat_dims = [ categorical_dims[f] for i, f in enumerate(features) if f in categor
 def GenerateTrigger(df, poisoningRate, backdoorTriggerValues, targetLabel):
     rows_with_trigger = df.sample(frac=poisoningRate)
     rows_with_trigger[backdoorFeatures] = backdoorTriggerValues
-    rows_with_trigger[target] = targetLabel
+    rows_with_trigger[target[0]] = targetLabel
     return rows_with_trigger
 
 def GenerateBackdoorTrigger(df, backdoorTriggerValues, targetLabel):
     df[backdoorFeatures] = backdoorTriggerValues
-    df[target] = targetLabel
+    df[target[0]] = targetLabel
     return df
 
 
