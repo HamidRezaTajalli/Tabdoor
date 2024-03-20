@@ -168,3 +168,8 @@ tmp/
 # out files
 
 *.out
+
+*.tsv
+*.json
+*.csv
+*.tfevents
