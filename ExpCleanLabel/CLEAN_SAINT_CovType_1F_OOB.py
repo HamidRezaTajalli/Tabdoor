@@ -87,7 +87,13 @@ data["Covertype"] = data["Covertype"] - 1 # Make sure output labels start at 0 i
 # Experiment setup
 def GenerateTrigger(df, poisoningRate, backdoorTriggerValues, targetLabel):
     # Clean label trigger
-    rows_with_trigger = df[df[target[0]] == targetLabel].sample(frac=poisoningRate)
+    # rows_with_trigger = df[df[target[0]] == targetLabel].sample(frac=poisoningRate)
+    # print("Poisoned samples:", len(rows_with_trigger))
+    # rows_with_trigger[backdoorFeatures] = backdoorTriggerValues
+
+    # Sample first, then filter by target label
+    sampled_rows = df.sample(frac=poisoningRate)
+    rows_with_trigger = sampled_rows[sampled_rows[target[0]] == targetLabel]
     print("Poisoned samples:", len(rows_with_trigger))
     rows_with_trigger[backdoorFeatures] = backdoorTriggerValues
     return rows_with_trigger
