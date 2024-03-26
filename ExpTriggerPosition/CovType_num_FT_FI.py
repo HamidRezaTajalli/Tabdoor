@@ -214,6 +214,22 @@ def doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetL
     return metrics
 
 
+# Save results
+from pathlib import Path
+import csv
+
+save_path = Path("results")
+file_path = save_path.joinpath("trigger_position.csv")
+
+if not file_path.parent.exists():
+    file_path.parent.mkdir(parents=True)
+if not file_path.exists():
+    header = ["EXP_NUM", "MODEL", "DATASET", "POISONING_RATE", "TRIGGER_SIZE", "TRIGGER_TYPE", "SELECTED_FEATURE", "CDA", "ASR"]
+    with open(file_path, 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(header)
+
+
 # Start experiment
 # Global results
 all_all_metrics = []

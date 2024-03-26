@@ -1,92 +1,58 @@
-# Not everything from this is used
-
+# Import necessary libraries
+import csv
 import numpy as np
 import pandas as pd
-from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, log_loss
-from sklearn.preprocessing import LabelEncoder, StandardScaler
-
-import os
-import wget
-from pathlib import Path
-import shutil
-import gzip
-
-from matplotlib import pyplot as plt
-
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score
 import torch
 from pytorch_tabnet.tab_model import TabNetClassifier
-
+from sklearn.preprocessing import LabelEncoder
+from pathlib import Path
 import random
-import math
+import os
+
+# Load the Space dataset
+dataset_path = Path('data/SDSS/SDSS_DR18.csv')
+data = pd.read_csv(dataset_path)
+
+# Assuming 'class' is the target column in your dataset
+target = ["class"]
+
+# Assuming the rest of the columns are features, adjust as necessary
+features = [col for col in data.columns if col not in target]
 
 # Experiment settings
-EPOCHS = 75
-RERUNS = 3 # How many times to redo the same setting
-DEVICE = "cuda:0"
+EPOCHS = 65
+RERUNS = 3  # How many times to redo the same setting
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-# Backdoor settings
-target=["bad_investment"]
+# Backdoor settings for Space dataset (adjust these as needed)
 backdoorFeatures = [] # will be set dynamically
 backdoorTriggerValues = [] # will be set to +10% out of bounds
-targetLabel = 0
-poisoningRates = [0.0001, 0.001, 0.01]
+targetLabel = 1  # Adjust based on your target encoding
+poisoningRates = [0.0005]
+
+# Encode target variable
+label_encoder = LabelEncoder()
+data[target[0]] = label_encoder.fit_transform(data[target[0]])
 
 
-# Load dataset
-data = pd.read_pickle("data/LOAN/processed_balanced.pkl")
 
-# Drop zipcode for tabnet, because it cannot handle a 
-#  change in dimension of categorical variable between test and valid
-data.drop("zip_code", axis=1, inplace=True)
-
-# Setup data
-cat_cols = [
-    "addr_state", "application_type", "disbursement_method",
-    "home_ownership", "initial_list_status", "purpose", "term", "verification_status",
-    #"zip_code"
-]
-
-num_cols = [col for col in data.columns.tolist() if col not in cat_cols]
-num_cols.remove(target[0])
-
-feature_columns = (
-    num_cols + cat_cols + target)
-
-categorical_columns = []
-categorical_dims =  {}
-for col in cat_cols:
-    print(col, data[col].nunique())
-    l_enc = LabelEncoder()
-    l_enc.fit(data[col].values)
-    categorical_columns.append(col)
-    categorical_dims[col] = len(l_enc.classes_)
-
-unused_feat = []
-
-features = [ col for col in data.columns if col not in unused_feat+[target]] 
-
-cat_idxs = [ i for i, f in enumerate(features) if f in categorical_columns]
-
-cat_dims = [ categorical_dims[f] for i, f in enumerate(features) if f in categorical_columns]
-
-# Experiment setup
+# Experiment setup functions
 def GenerateTrigger(df, poisoningRate, backdoorTriggerValues, targetLabel):
     rows_with_trigger = df.sample(frac=poisoningRate)
     rows_with_trigger[backdoorFeatures] = backdoorTriggerValues
-    rows_with_trigger[target] = targetLabel
+    rows_with_trigger[target[0]] = targetLabel
     return rows_with_trigger
 
 def GenerateBackdoorTrigger(df, backdoorTriggerValues, targetLabel):
     df[backdoorFeatures] = backdoorTriggerValues
-    df[target] = targetLabel
+    df[target[0]] = targetLabel
     return df
-
 
 def doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetLabel, runIdx):
     # Load dataset
-    # Changes to output df will not influence input df
     train_and_valid, test = train_test_split(data, stratify=data[target[0]], test_size=0.2, random_state=runIdx)
     
     # Apply backdoor to train and valid data
@@ -95,69 +61,46 @@ def doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetL
     train_and_valid.update(train_and_valid_poisoned)
     
     # Create backdoored test version
-    # Also copy to not disturb clean test data
     test_backdoor = test.copy()
-
-    # Drop rows that already have the target label
     test_backdoor = test_backdoor[test_backdoor[target[0]] != targetLabel]
-    
-    # Add backdoor to all test_backdoor samples
     test_backdoor = GenerateBackdoorTrigger(test_backdoor, backdoorTriggerValues, targetLabel)
     
     # Split dataset into samples and labels
     train, valid = train_test_split(train_and_valid, stratify=train_and_valid[target[0]], test_size=0.2, random_state=runIdx)
+    X_train, y_train = train.drop(target[0], axis=1), train[target[0]]
+    X_valid, y_valid = valid.drop(target[0], axis=1), valid[target[0]]
+    X_test, y_test = test.drop(target[0], axis=1), test[target[0]]
+    X_test_backdoor, y_test_backdoor = test_backdoor.drop(target[0], axis=1), test_backdoor[target[0]]
 
-    X_train = train.drop(target[0], axis=1)
-    y_train = train[target[0]]
 
-    X_valid = valid.drop(target[0], axis=1)
-    y_valid = valid[target[0]]
-
-    X_test = test.drop(target[0], axis=1)
-    y_test = test[target[0]]
-
-    X_test_backdoor = test_backdoor.drop(target[0], axis=1)
-    y_test_backdoor = test_backdoor[target[0]]
-
-    # Normalize
-    normalizer = StandardScaler()
-    normalizer.fit(X_train[num_cols])
-
-    X_train[num_cols] = normalizer.transform(X_train[num_cols])
-    X_valid[num_cols] = normalizer.transform(X_valid[num_cols])
-    X_test[num_cols] = normalizer.transform(X_test[num_cols])
-    X_test_backdoor[num_cols] = normalizer.transform(X_test_backdoor[num_cols])
+    # Normalize features
+    num_cols = features  # Assuming all other columns are numerical
+    scaler = StandardScaler()
+    scaler.fit(X_train[num_cols])
+    X_train[num_cols] = scaler.transform(X_train[num_cols])
+    X_valid[num_cols] = scaler.transform(X_valid[num_cols])
+    X_test[num_cols] = scaler.transform(X_test[num_cols])
+    X_test_backdoor[num_cols] = scaler.transform(X_test_backdoor[num_cols])
     
+
     # Create network
-    clf = TabNetClassifier(
-        device_name=DEVICE,
-        n_d=64, n_a=64, n_steps=5,
-        gamma=1.5, n_independent=2, n_shared=2,
-        
-        momentum=0.3,
-        mask_type="entmax",
+    clf = TabNetClassifier(device_name=DEVICE, n_d=64, n_a=64, n_steps=5, gamma=1.5, n_independent=2, n_shared=2, momentum=0.3, mask_type="entmax")
+    
+    # Fit network on backdoored data
+    clf.fit(X_train=X_train.values, y_train=y_train.values, eval_set=[(X_train.values, y_train.values), (X_valid.values, y_valid.values)],
+        eval_name=['train', 'valid'],
+        max_epochs=EPOCHS, patience=EPOCHS,
+        batch_size=1024, virtual_batch_size=128
     )
 
-    # Fit network on backdoored data
-    clf.fit(
-        X_train=X_train.values, y_train=y_train.values,
-        eval_set=[(X_train.values, y_train.values), (X_valid.values, y_valid.values)],
-        eval_name=['train', 'valid'],
-        eval_metric=["auc", "accuracy"],
-        max_epochs=EPOCHS, patience=EPOCHS,
-        batch_size=16384, virtual_batch_size=512,
-        #num_workers = 0,
-    )
-    
     # Evaluate backdoor    
-    y_pred = clf.predict(X_test_backdoor.values)
-    ASR = accuracy_score(y_pred=y_pred, y_true=y_test_backdoor.values)
+    y_pred_backdoor = clf.predict(X_test_backdoor.values)
+    ASR = accuracy_score(y_pred=y_pred_backdoor, y_true=y_test_backdoor.values)
 
     y_pred = clf.predict(X_test.values)
     BA = accuracy_score(y_pred=y_pred, y_true=y_test.values)
     
     return ASR, BA
-
 
 
 # Save results
@@ -183,10 +126,10 @@ if not file_path.exists():
 all_ASR_results = []
 all_BA_results = []
 
-for f in num_cols:
+for f in features:
     print("******************FEATURE", f, "***********************")
     backdoorFeatures = [f]
-    backdoorTriggerValues = [(data[backdoorFeatures[0]].max() + (data[backdoorFeatures[0]].max() - data[backdoorFeatures[0]].min())*0.1)]
+    backdoorTriggerValues = [int(data[backdoorFeatures[0]].max() + (data[backdoorFeatures[0]].max() - data[backdoorFeatures[0]].min())*0.1)]
     print("using trigger value of", backdoorTriggerValues[0])
 
     ASR_results = []
@@ -199,9 +142,10 @@ for f in num_cols:
 
         for run in range(RERUNS):
             ASR, BA = doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetLabel, run+1)
+
             with open(file_path, 'a', newline='') as csvfile:
                 csvwriter = csv.writer(csvfile)
-                csvwriter.writerow([run, "TabNet", "LOAN", poisoningRate, 1, "OOB", f, BA, ASR])
+                csvwriter.writerow([run, "TabNet", "SDSS", poisoningRate, 1, "OOB", f, BA, ASR])
             print("Results for", poisoningRate, "Run", run+1)
             print("ASR:", ASR)
             print("BA:", BA)
@@ -216,7 +160,7 @@ for f in num_cols:
     all_BA_results.append(BA_results)
 
 
-for fidx, f in enumerate(num_cols):
+for fidx, f in enumerate(features):
     print(f)
     for idx, poisoningRate in enumerate(poisoningRates):
         print("Results for", poisoningRate)
@@ -226,7 +170,7 @@ for fidx, f in enumerate(num_cols):
         print("BA:", all_BA_results[fidx][idx])
         print("------------------------------------------")
 
-for fidx, f in enumerate(num_cols):
+for fidx, f in enumerate(features):
     print("________________________")
     print(f)
     print("EASY COPY PASTE RESULTS:")
