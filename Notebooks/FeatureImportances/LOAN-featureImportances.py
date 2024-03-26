@@ -31,11 +31,11 @@ pd.set_option('display.max_rows', 500)
 import random
 import json
 
-
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 ## Backdoor settings
 target=["bad_investment"]
 
-#data = pd.read_pickle("../../data/LOAN/processed_balanced.pkl")
+data = pd.read_pickle("../../data/LOAN/processed_balanced.pkl")
 
 #display(data.info())
 
@@ -73,7 +73,7 @@ cat_idxs = [ i for i, f in enumerate(features) if f in categorical_columns]
 
 cat_dims = [ categorical_dims[f] for i, f in enumerate(features) if f in categorical_columns]
 
-#feature_importances_TabNet = []
+feature_importances_TabNet = []
 
 for i in range(5):
     # Load dataset
@@ -102,7 +102,7 @@ for i in range(5):
 
     # Create network
     clf = TabNetClassifier(
-        device_name="cuda:0",
+        device_name=DEVICE,
         n_d=64, n_a=64, n_steps=5,
         gamma=1.5, n_independent=2, n_shared=2,
         cat_idxs=cat_idxs,
@@ -126,7 +126,7 @@ for i in range(5):
     
     del clf
 
-#feature_importances_XGBoost = []
+feature_importances_XGBoost = []
 
 for i in range(5):
     # Load dataset
@@ -153,12 +153,12 @@ for i in range(5):
     X_valid[num_cols] = normalizer.transform(X_valid[num_cols])
     X_test[num_cols] = normalizer.transform(X_test[num_cols])
 
-    clf = XGBClassifier(n_estimators=100, random_state = i)
+    clf = XGBClassifier(n_estimators=100, random_state = i, verbose=0)
 
     clf.fit(
         X_train, y_train,
         eval_set=[(X_valid, y_valid)],
-        verbose=0
+        
     )
 
     feat_importances = pd.Series(clf.feature_importances_, index=X_train.columns)
@@ -167,7 +167,7 @@ for i in range(5):
     del clf
 
 
-#feature_importances_lightGBM = []
+feature_importances_lightGBM = []
 
 for i in range(5):
     # Load dataset
@@ -208,7 +208,7 @@ for i in range(5):
     del clf
 
 
-#feature_importances_catBoost = []
+feature_importances_catBoost = []
 
 for i in range(5):
     # Load dataset
@@ -248,7 +248,7 @@ for i in range(5):
     del clf
 
 
-#feature_importances_randforest = []
+feature_importances_randforest = []
 
 for i in range(5):
     # Load dataset
@@ -287,7 +287,7 @@ for i in range(5):
     del clf
 
 
-#def printResults(importances_list):
+def printResults(importances_list):
     print("Ranking of numerical features for each run:")
     series_list = []
     for fi in importances_list:
@@ -301,23 +301,23 @@ for i in range(5):
     
     x = (x.mean(axis=0))
     norm_x=(x/x.sum())
-    display(norm_x.sort_values(ascending=False).round(5))
+    print(norm_x.sort_values(ascending=False).round(5))
         
     print("\n------------------------\n")
 
-#print("TabNet")
+print("TabNet")
 printResults(feature_importances_TabNet)
 
-#print("XGBoost")
+print("XGBoost")
 printResults(feature_importances_XGBoost)
 
-#print("LightGBM")
+print("LightGBM")
 printResults(feature_importances_lightGBM)
 
-#print("CatBoost")
+print("CatBoost")
 printResults(feature_importances_catBoost)
 
-#print("Random Forest Classifier")
+print("Random Forest Classifier")
 printResults(feature_importances_randforest)
 
 #

@@ -30,11 +30,11 @@ pd.set_option('display.max_columns', None)
 import random
 import json
 
-
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 ## Backdoor settings
 target=["Covertype"]
 
-#url = "https://archive.ics.uci.edu/ml/machine-learning-databases/covtype/covtype.data.gz"
+url = "https://archive.ics.uci.edu/ml/machine-learning-databases/covtype/covtype.data.gz"
 dataset_name = 'forest-cover-type'
 tmp_out = Path('../../data/'+dataset_name+'.gz')
 out = Path(os.getcwd()+'/../../data/'+dataset_name+'.csv')
@@ -49,7 +49,7 @@ else:
         with open(out, 'wb') as f_out:
             shutil.copyfileobj(f_in, f_out)
 
-#cat_cols = [
+cat_cols = [
     "Wilderness_Area1", "Wilderness_Area2", "Wilderness_Area3",
     "Wilderness_Area4", "Soil_Type1", "Soil_Type2", "Soil_Type3", "Soil_Type4",
     "Soil_Type5", "Soil_Type6", "Soil_Type7", "Soil_Type8", "Soil_Type9",
@@ -72,7 +72,7 @@ num_cols = [
 feature_columns = (
     num_cols + cat_cols + target)
 
-#data = pd.read_csv(out, header=None, names=feature_columns)
+data = pd.read_csv(out, header=None, names=feature_columns)
 data["Covertype"] = data["Covertype"] - 1 # Make sure output labels start at 0 instead of 1
 
 ## Not used in this dataset
@@ -105,7 +105,7 @@ cat_idxs = [ i for i, f in enumerate(features) if f in categorical_columns]
 # Not used in this dataset
 cat_dims = [ categorical_dims[f] for i, f in enumerate(features) if f in categorical_columns]
 
-#feature_importances_TabNet = []
+feature_importances_TabNet = []
 
 for i in range(5):
     # Load dataset
@@ -134,7 +134,7 @@ for i in range(5):
 
     # Create network
     clf = TabNetClassifier(
-        device_name="cuda:0",
+        device_name=DEVICE,
         n_d=64, n_a=64, n_steps=5,
         gamma=1.5, n_independent=2, n_shared=2,
         
@@ -153,7 +153,7 @@ for i in range(5):
     feat_importances = pd.Series(clf.feature_importances_, index=X_train.columns)
     feature_importances_TabNet.append(feat_importances)
 
-#feature_importances_XGBoost = []
+feature_importances_XGBoost = []
 
 for i in range(5):
     # Load dataset
@@ -192,7 +192,7 @@ for i in range(5):
     feature_importances_XGBoost.append(feat_importances)
 
 
-#feature_importances_lightGBM = []
+feature_importances_lightGBM = []
 
 for i in range(5):
     # Load dataset
@@ -219,19 +219,18 @@ for i in range(5):
     X_valid[num_cols] = normalizer.transform(X_valid[num_cols])
     X_test[num_cols] = normalizer.transform(X_test[num_cols])
 
-    clf = LGBMClassifier(n_estimators=100, random_state = i)
+    clf = LGBMClassifier(n_estimators=100, random_state = i, verbose=-1)
 
     clf.fit(
         X_train, y_train,
         eval_set=[(X_valid, y_valid)],
-        verbose=-1,
     )
 
     feat_importances = pd.Series(clf.feature_importances_, index=X_train.columns)
     feature_importances_lightGBM.append(feat_importances)
 
 
-#feature_importances_catBoost = []
+feature_importances_catBoost = []
 
 for i in range(5):
     # Load dataset
@@ -269,7 +268,7 @@ for i in range(5):
     feature_importances_catBoost.append(feat_importances)
 
 
-#feature_importances_randforest = []
+feature_importances_randforest = []
 
 for i in range(5):
     # Load dataset
@@ -306,7 +305,7 @@ for i in range(5):
     feature_importances_randforest.append(feat_importances)
 
 
-#def printResults(importances_list):
+def printResults(importances_list):
     print("Ranking of numerical features for each run:")
     series_list = []
     for fi in importances_list:
@@ -320,23 +319,23 @@ for i in range(5):
     
     x = (x.mean(axis=0))
     norm_x=(x/x.sum())
-    display(norm_x.sort_values(ascending=False))
+    print(norm_x.sort_values(ascending=False))
         
     print("\n------------------------\n")
 
-#print("TabNet")
+print("TabNet")
 printResults(feature_importances_TabNet)
 
-#print("XGBoost")
+print("XGBoost")
 printResults(feature_importances_XGBoost)
 
-#print("LightGBM")
+print("LightGBM")
 printResults(feature_importances_lightGBM)
 
-#print("CatBoost")
+print("CatBoost")
 printResults(feature_importances_catBoost)
 
-#print("Random Forest Classifier")
+print("Random Forest Classifier")
 printResults(feature_importances_randforest)
 
 #
