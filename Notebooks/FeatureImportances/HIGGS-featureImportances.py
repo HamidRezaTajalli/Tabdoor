@@ -25,16 +25,20 @@ from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
 from sklearn.ensemble import RandomForestClassifier
 
+import sys
+sys.path.append("/scratch/Behrad/repos/Tabdoor/")
+
 pd.set_option('display.max_columns', None)
 
 import random
 import json
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+RERUNS = 5
 ## Backdoor settings
 target=["target"]
 
-data = pd.read_pickle("../../data/HIGGS/processed.pkl")
+data = pd.read_pickle("data/HIGGS/processed.pkl")
 
 cat_cols = []
 
@@ -64,7 +68,7 @@ cat_dims = [ categorical_dims[f] for i, f in enumerate(features) if f in categor
 
 feature_importances_TabNet = []
 
-for i in range(5):
+for i in range(RERUNS):
     # Load dataset
     # Changes to output df will not influence input df
     train_and_valid, test = train_test_split(data, stratify=data[target[0]], test_size=0.2, random_state=i)
@@ -115,7 +119,7 @@ for i in range(5):
 
 feature_importances_XGBoost = []
 
-for i in range(5):
+for i in range(RERUNS):
     # Load dataset
     # Changes to output df will not influence input df
     train_and_valid, test = train_test_split(data, stratify=data[target[0]], test_size=0.2, random_state=i)
@@ -156,7 +160,7 @@ for i in range(5):
 
 feature_importances_lightGBM = []
 
-for i in range(5):
+for i in range(RERUNS):
     # Load dataset
     # Changes to output df will not influence input df
     train_and_valid, test = train_test_split(data, stratify=data[target[0]], test_size=0.2, random_state=i)
@@ -181,12 +185,12 @@ for i in range(5):
     X_valid[num_cols] = normalizer.transform(X_valid[num_cols])
     X_test[num_cols] = normalizer.transform(X_test[num_cols])
 
-    clf = LGBMClassifier(n_estimators=100, random_state = i)
+    clf = LGBMClassifier(n_estimators=100, random_state = i, verbose=-1)
 
     clf.fit(
         X_train, y_train,
         eval_set=[(X_valid, y_valid)],
-        verbose=-1,
+
     )
 
     feat_importances = pd.Series(clf.feature_importances_, index=X_train.columns)
@@ -197,7 +201,7 @@ for i in range(5):
 
 feature_importances_catBoost = []
 
-for i in range(5):
+for i in range(RERUNS):
     # Load dataset
     # Changes to output df will not influence input df
     train_and_valid, test = train_test_split(data, stratify=data[target[0]], test_size=0.2, random_state=i)
@@ -237,7 +241,7 @@ for i in range(5):
 
 feature_importances_randforest = []
 
-for i in range(5):
+for i in range(RERUNS):
     # Load dataset
     # Changes to output df will not influence input df
     train_and_valid, test = train_test_split(data, stratify=data[target[0]], test_size=0.2, random_state=i)
@@ -309,3 +313,35 @@ printResults(feature_importances_randforest)
 
 #
 
+# Normalize feature importances for each model
+normalized_importances = []
+for feature_importances in [feature_importances_TabNet, feature_importances_XGBoost, feature_importances_lightGBM, feature_importances_catBoost, feature_importances_randforest]:
+    normalized = [(fi - fi.min()) / (fi.max() - fi.min()) for fi in feature_importances]
+    normalized_importances.append(pd.concat(normalized, axis=1).mean(axis=1))
+
+# Calculate the average importance value of each feature across all models
+average_importances = pd.concat(normalized_importances, axis=1).mean(axis=1)
+
+# Rank the feature importances with new calculated values
+ranked_importances = average_importances.sort_values(ascending=False)
+print(ranked_importances[ranked_importances.index.isin(num_cols)])
+
+# # Convert ranked importances to a dictionary with features and their scores
+# importance_dict = {
+#     "features": ranked_importances.index.tolist(),
+#     "scores": ranked_importances.values.tolist()
+# }
+
+# Convert ranked importances of numerical features to a dictionary with features and their scores
+importance_dict = {
+    "features": ranked_importances[ranked_importances.index.isin(num_cols)].index.tolist(),
+    "scores": ranked_importances[ranked_importances.index.isin(num_cols)].values.tolist()
+}
+
+# Print the dictionary in a formatted way
+print("Feature Importances:")
+for feature, score in zip(importance_dict["features"], importance_dict["scores"]):
+    print(f"{feature}: {score}")
+
+print(importance_dict["features"])
+print(importance_dict["scores"])
