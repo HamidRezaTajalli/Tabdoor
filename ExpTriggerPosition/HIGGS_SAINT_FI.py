@@ -25,6 +25,7 @@ from SAINT.saintLib import SaintLib
 # Experiment settings
 EPOCHS = 8
 RERUNS = 3 # How many times to redo the same setting
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Backdoor settings
 target=["target"]
@@ -34,7 +35,7 @@ targetLabel = 1
 poisoningRates = [0.0001, 0.0005, 0.001, 0.005, 0.01]
 
 # Model settings
-SAINT_ARGS = ["--task", "binary", "--epochs", str(EPOCHS), "--batchsize", "512", "--embedding_size", "32", "--device", "cuda:0"]
+SAINT_ARGS = ["--task", "binary", "--epochs", str(EPOCHS), "--batchsize", "512", "--embedding_size", "32", "--device", DEVICE]
 
 # Load dataset
 data = pd.read_pickle("data/HIGGS/processed-small.pkl")

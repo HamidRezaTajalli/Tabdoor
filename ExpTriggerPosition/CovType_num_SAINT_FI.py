@@ -25,6 +25,12 @@ from SAINT.saintLib import SaintLib
 # Experiment settings
 EPOCHS = 20
 RERUNS = 3 # How many times to redo the same setting
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+features_scores_rank = [0.9725998231950376, 0.47895785138241215, 0.41735715946882984, 0.21614530915592378, 0.20119319566735946, 0.1719457796538372, 0.13720482415046328, 0.13218814485680436, 0.12369645705798851, 0.0820985978851714]
+features_names_rank = ['Elevation', 'Horizontal_Distance_To_Roadways', 'Horizontal_Distance_To_Fire_Points', 'Horizontal_Distance_To_Hydrology', 'Vertical_Distance_To_Hydrology', 'Hillshade_Noon', 'Hillshade_3pm', 'Hillshade_9am', 'Aspect', 'Slope']
+
+
 
 # Backdoor settings
 target=["Covertype"]
@@ -34,7 +40,7 @@ targetLabel = 4
 poisoningRates = [0.001, 0.002, 0.003, 0.004, 0.005]
 
 # Model settings
-SAINT_ARGS = ["--epochs", str(EPOCHS), "--batchsize", "512", "--embedding_size", "32", "--device", "cuda:0"]
+SAINT_ARGS = ["--epochs", str(EPOCHS), "--batchsize", "512", "--embedding_size", "32", "--device", DEVICE]
 
 # Load dataset
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/covtype/covtype.data.gz"
