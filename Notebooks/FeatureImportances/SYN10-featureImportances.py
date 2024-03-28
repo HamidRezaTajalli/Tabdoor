@@ -196,12 +196,12 @@ for i in range(RERUNS):
     X_valid[num_cols] = normalizer.transform(X_valid[num_cols])
     X_test[num_cols] = normalizer.transform(X_test[num_cols])
 
-    clf = LGBMClassifier(n_estimators=100, random_state = i)
+    clf = LGBMClassifier(n_estimators=100, random_state = i, verbose=-1)
 
     clf.fit(
         X_train, y_train,
         eval_set=[(X_valid, y_valid)],
-        verbose=-1,
+        
     )
 
     feat_importances = pd.Series(clf.feature_importances_, index=X_train.columns)
