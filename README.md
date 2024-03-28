@@ -47,6 +47,7 @@ pip install notebook
 2. Download `LCDataDictionary.xlsx` from https://www.kaggle.com/datasets/adarshsng/lending-club-loan-data-csv?select=LCDataDictionary.xlsx and place in `data/LOAN/`
 3. Download `HIGGS.csv.gz` from https://archive.ics.uci.edu/ml/datasets/HIGGS and extract `HIGGS.csv` to `data/HIGGS`
 4- Download `SDSS_DR18.csv` from https://www.kaggle.com/datasets/diraf0/sloan-digital-sky-survey-dr18/data and place it in `data/SDSS/`
+
 5. Run all four notebooks under `data/preprocess` to generate the `.pkl` files containing the datasets for the experiments
 
 ### Run main experiments
