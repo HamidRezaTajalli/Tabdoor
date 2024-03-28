@@ -109,6 +109,19 @@ average_importances = normalized_importances_df.mean(axis=1)
 # Sort the features based on average importance
 sorted_importances = average_importances.sort_values(ascending=False)
 
+# Display feature rankings along with their corresponding importance scores
+print("Feature Rankings and their Importance Scores:")
+feature_names = []
+importance_scores = []
+
+for feature, score in sorted_importances.items():
+    feature_names.append(feature)
+    importance_scores.append(f"{score:.5f}")
+
+print("Feature Names:", feature_names)
+print("Importance Scores:", importance_scores)
+
+
 # Select the top 5 features
 top_5_features = sorted_importances.head(5)
 
@@ -118,7 +131,7 @@ print(top_5_features)
 
 
 # List of top 5 features
-top_features = ['redshift', 'petroR50_g', 'psfMag_u', 'r', 'petroR50_u']
+top_features = ['redshift', 'petroR50_g', 'petroRad_i', 'petroFlux_r', 'psfMag_u']
 
 # Dictionary to hold the new values for each feature
 new_values = {}

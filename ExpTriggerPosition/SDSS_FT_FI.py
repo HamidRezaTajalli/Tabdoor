@@ -22,6 +22,12 @@ import json
 EPOCHS = 50
 RERUNS = 3  # How many times to redo the same setting
 
+
+
+features_scores_rank = ['0.62994', '0.29455', '0.24442', '0.23118', '0.21834', '0.16102', '0.14612', '0.14201', '0.10411', '0.09188', '0.08459', '0.07889', '0.07801', '0.07685', '0.07032', '0.06842', '0.06250', '0.06183', '0.05945', '0.05646', '0.05602', '0.05351', '0.05023', '0.04876', '0.04774', '0.04278', '0.04247', '0.04218', '0.04108', '0.04069', '0.03928', '0.03917', '0.03830', '0.03683', '0.03557', '0.03362', '0.03345', '0.03010', '0.02114', '0.01643', '0.00001', '0.00000']
+features_names_rank = ['redshift', 'petroR50_g', 'petroRad_i', 'petroFlux_r', 'psfMag_u', 'petroR50_u', 'petroR50_z', 'psfMag_r', 'petroR50_i', 'petroRad_z', 'petroR50_r', 'petroRad_g', 'psfMag_z', 'petroRad_u', 'petroFlux_g', 'psfMag_g', 'expAB_i', 'r', 'petroRad_r', 'u', 'psfMag_i', 'expAB_u', 'plate', 'fiberid', 'expAB_z', 'expAB_g', 'expAB_r', 'dec', 'specobjid', 'field', 'mjd', 'petroFlux_z', 'petroFlux_u', 'g', 'ra', 'i', 'z', 'run', 'petroFlux_i', 'camcol', 'rerun', 'objid']
+
+
 # Backdoor settings for Space dataset
 target = ["class"]
 backdoorFeatures = [] # will be set dynamically
