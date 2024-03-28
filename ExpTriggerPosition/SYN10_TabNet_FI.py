@@ -24,7 +24,10 @@ import math
 # Experiment settings
 EPOCHS = 20
 RERUNS = 3 # How many times to redo the same setting
-DEVICE = "cuda:0"
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+features_scores_rank = [0.8624635420291693, 0.7660015030284228, 0.7006837697829198, 0.5542150043047285, 0.4432898478735325, 0.0379695770498061, 0.031187230689711236, 0.029761442082252464, 0.023538924313123186, 0.015200025823792953]
+features_names_rank = ['f6', 'f10', 'f2', 'f4', 'f5', 'f8', 'f9', 'f7', 'f1', 'f3']
 
 # Backdoor settings
 target=["y"]
