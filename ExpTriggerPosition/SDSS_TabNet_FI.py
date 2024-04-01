@@ -121,7 +121,7 @@ file_path = save_path.joinpath("trigger_position.csv")
 if not file_path.parent.exists():
     file_path.parent.mkdir(parents=True)
 if not file_path.exists():
-    header = ["EXP_NUM", "MODEL", "DATASET", "POISONING_RATE", "TRIGGER_SIZE", "TRIGGER_TYPE", "SELECTED_FEATURE", "CDA", "ASR"]
+    header = ["EXP_NUM", "MODEL", "DATASET", "POISONING_RATE", "TRIGGER_SIZE", "TRIGGER_TYPE", "SELECTED_FEATURE", "FEATURE_RANK", "CDA", "ASR"]
     with open(file_path, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(header)
@@ -135,6 +135,8 @@ all_ASR_results = []
 all_BA_results = []
 
 for f in features:
+    feature_index = features_names_rank.index(f.upper()) if f.upper() in map(str.upper, features_names_rank) else -1
+    print("Feature index in rank:", feature_index)
     print("******************FEATURE", f, "***********************")
     backdoorFeatures = [f]
     backdoorTriggerValues = [int(data[backdoorFeatures[0]].max() + (data[backdoorFeatures[0]].max() - data[backdoorFeatures[0]].min())*0.1)]
@@ -153,7 +155,7 @@ for f in features:
 
             with open(file_path, 'a', newline='') as csvfile:
                 csvwriter = csv.writer(csvfile)
-                csvwriter.writerow([run, "TabNet", "SDSS", poisoningRate, 1, "OOB", f, BA, ASR])
+                csvwriter.writerow([run, "TabNet", "SDSS", poisoningRate, 1, "OOB", f, feature_index, BA, ASR])
             print("Results for", poisoningRate, "Run", run+1)
             print("ASR:", ASR)
             print("BA:", BA)

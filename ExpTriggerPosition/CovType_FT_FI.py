@@ -227,7 +227,7 @@ file_path = save_path.joinpath("trigger_position.csv")
 if not file_path.parent.exists():
     file_path.parent.mkdir(parents=True)
 if not file_path.exists():
-    header = ["EXP_NUM", "MODEL", "DATASET", "POISONING_RATE", "TRIGGER_SIZE", "TRIGGER_TYPE", "SELECTED_FEATURE", "CDA", "ASR"]
+    header = ["EXP_NUM", "MODEL", "DATASET", "POISONING_RATE", "TRIGGER_SIZE", "TRIGGER_TYPE", "SELECTED_FEATURE", "FEATURE_RANK", "CDA", "ASR"]
     with open(file_path, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(header)
@@ -237,7 +237,9 @@ if not file_path.exists():
 # Global results
 all_all_metrics = []
 for f in num_cols:
+    feature_index = features_names_rank.index(f.upper()) if f.upper() in map(str.upper, features_names_rank) else -1
     print("******************FEATURE", f, "***********************")
+    print("Feature index in rank:", feature_index)
     backdoorFeatures = [f]
     backdoorTriggerValues = [int(data[backdoorFeatures[0]].max() + (data[backdoorFeatures[0]].max() - data[backdoorFeatures[0]].min())*0.1)]
     print("using trigger value of", backdoorTriggerValues[0])
@@ -252,7 +254,10 @@ for f in num_cols:
             metrics = doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetLabel, run+1)
             with open(file_path, 'a', newline='') as csvfile:
                 csvwriter = csv.writer(csvfile)
-                csvwriter.writerow([run, "FTT", "CovType", poisoningRate, 1, "OOB", f, metrics['test']['accuracy'], metrics['test_backdoor']['accuracy']])
+                csvwriter.writerow([run, "FTT", "CovType", poisoningRate, 1, "OOB", f, feature_index, metrics['test']['accuracy'], metrics['test_backdoor']['accuracy']])
+            
+            
+            
             print("Results for", poisoningRate, "Run", run+1)
             print(metrics)
             print("---------------------------------------")
