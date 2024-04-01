@@ -27,7 +27,10 @@ target = ["class"]
 
 # Backdoor settings for Space dataset (adjust these as needed)
 backdoorFeatures = ['redshift', 'petroR50_g', 'petroRad_i']  # Example feature to use as a backdoor trigger
-backdoorTriggerValues = [0.0, 1.948439, 1.278491]  # Example trigger value, adjust based on your analysis
+backdoorTriggerValues_max = [6.990327, 75.968280, 258.453600]
+backdoorTriggerValues_min = [-0.004268, 0.241845, 0.057369]
+backdoorTriggerValues_median = [0.048772, 1.546778, 3.349003]
+backdoorTriggerValues_mean = [0.168441, 2.111579, 4.458623]
 targetLabel = 1  # Adjust based on your target encoding
 poisoningRates = [0.0001, 0.0005, 0.001, 0.002, 0.004, 0.006, 0.008, 0.01]
 
@@ -99,57 +102,70 @@ def GenerateBackdoorTrigger(df, backdoorTriggerValues, targetLabel):
     df[target[0]] = targetLabel
     return df
 
-def doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetLabel, runIdx):
-    # Load dataset
-    train_and_valid, test = train_test_split(data, stratify=data[target[0]], test_size=0.2, random_state=runIdx)
+def doExperiment(poisoningRate, backdoorFeatures, targetLabel, runIdx):
+    # Define all sets of backdoor trigger values
+    backdoorTriggerValues_sets = {
+        'max': backdoorTriggerValues_max,
+        'min': backdoorTriggerValues_min,
+        'median': backdoorTriggerValues_median,
+        'mean': backdoorTriggerValues_mean
+    }
     
-    # Apply backdoor to train and valid data
-    random.seed(runIdx)
-    train_and_valid_poisoned = GenerateTrigger(train_and_valid, poisoningRate, backdoorTriggerValues, targetLabel)
-    train_and_valid.update(train_and_valid_poisoned)
+    # Dictionary to store metrics for all conditions
+    all_metrics = {}
     
-    # Create backdoored test version
-    test_backdoor = test.copy()
-    test_backdoor = test_backdoor[test_backdoor[target[0]] != targetLabel]
-    test_backdoor = GenerateBackdoorTrigger(test_backdoor, backdoorTriggerValues, targetLabel)
+    # Iterate through each set of backdoor trigger values
+    for condition, backdoorTriggerValues in backdoorTriggerValues_sets.items():
+        # Load dataset
+        train_and_valid, test = train_test_split(data, stratify=data[target[0]], test_size=0.2, random_state=runIdx)
+        
+        # Apply backdoor to train and valid data
+        random.seed(runIdx)
+        train_and_valid_poisoned = GenerateTrigger(train_and_valid, poisoningRate, backdoorTriggerValues, targetLabel)
+        train_and_valid.update(train_and_valid_poisoned)
+        
+        # Create backdoored test version
+        test_backdoor = test.copy()
+        test_backdoor = test_backdoor[test_backdoor[target[0]] != targetLabel]
+        test_backdoor = GenerateBackdoorTrigger(test_backdoor, backdoorTriggerValues, targetLabel)
+        
+        # Split dataset into samples and labels
+        train, valid = train_test_split(train_and_valid, stratify=train_and_valid[target[0]], test_size=0.2, random_state=runIdx)
+
+        # Normalize data
+        scaler = StandardScaler()
+        train_features = scaler.fit_transform(train[features])
+        valid_features = scaler.transform(valid[features])
+        test_features = scaler.transform(test[features])
+        test_backdoor_features = scaler.transform(test_backdoor[features])
+
+        # Replace original data with normalized data
+        train[features] = train_features
+        valid[features] = valid_features
+        test[features] = test_features
+        test_backdoor[features] = test_backdoor_features
+
+        # Prepare data for FT-transformer
+        convertDataForFTtransformer(train, valid, test, test_backdoor)
+
+        # Adjust checkpoint path for each condition
+        checkpoint_path = f'FTtransformerCheckpoints/SDSS_3F_IB_{condition}_{poisoningRate}_{runIdx}.pt'
+        checkpoint_dir = Path('FTtransformerCheckpoints/')
+        if not checkpoint_dir.exists():
+            checkpoint_dir.mkdir(parents=True, exist_ok=True)    
+
+        print(f"Checkpoint directory exists: {checkpoint_dir.exists()}")    
+
+        # Create network
+        ftTransformer = FTtransformer(config)
+
+        # Fit network on backdoored data
+        metrics = ftTransformer.fit(checkpoint_path)
+
+        # Store metrics for the current condition
+        all_metrics[condition] = metrics
     
-    # Split dataset into samples and labels
-    train, valid = train_test_split(train_and_valid, stratify=train_and_valid[target[0]], test_size=0.2, random_state=runIdx)
-
-
-
-    # Normalize data
-    scaler = StandardScaler()
-    train_features = scaler.fit_transform(train[features])
-    valid_features = scaler.transform(valid[features])
-    test_features = scaler.transform(test[features])
-    test_backdoor_features = scaler.transform(test_backdoor[features])
-
-    # Replace original data with normalized data
-    train[features] = train_features
-    valid[features] = valid_features
-    test[features] = test_features
-    test_backdoor[features] = test_backdoor_features
-
-
-    # Prepare data for FT-transformer
-    convertDataForFTtransformer(train, valid, test, test_backdoor)
-
-    # checkpoint_path = 'FTtransformerCheckpoints/SDSS_1F_OOB_' + str(poisoningRate) + "-" + str(runIdx) + ".pt"
-    checkpoint_path = 'FTtransformerCheckpoints/SDSS_3F_IB_' + '{:.5f}'.format(poisoningRate) + "-" + str(runIdx) + ".pt"
-    checkpoint_dir = Path('FTtransformerCheckpoints/')
-    if not checkpoint_dir.exists():
-        checkpoint_dir.mkdir(parents=True, exist_ok=True)    
-
-    print(f"Checkpoint directory exists: {checkpoint_dir.exists()}")    
-
-    # Create network
-    ftTransformer = FTtransformer(config)
-
-    # Fit network on backdoored data
-    metrics = ftTransformer.fit(checkpoint_path)
-
-    return metrics
+    return all_metrics
 
 def convertDataForFTtransformer(train, valid, test, test_backdoor):
     outPath = DATAPATH
@@ -200,6 +216,23 @@ def convertDataForFTtransformer(train, valid, test, test_backdoor):
     with open(outPath + 'info.json', 'w') as f:
         json.dump(info, f, indent=4)
 
+
+# Save results
+from pathlib import Path
+import csv
+
+save_path = Path("results")
+file_path = save_path.joinpath("in_bounds_others.csv")
+
+if not file_path.parent.exists():
+    file_path.parent.mkdir(parents=True)
+if not file_path.exists():
+    header = ["EXP_NUM", "MODEL", "DATASET", "POISONING_RATE", "TRIGGER_SIZE", "TRIGGER_TYPE", "TRIGGER_VALUE", "CDA", "ASR"]
+    with open(file_path, 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(header)
+
+
 # Start experiment
 all_metrics = []
 
@@ -207,62 +240,15 @@ for poisoningRate in poisoningRates:
     run_metrics = []
 
     for run in range(RERUNS):
-        metrics = doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetLabel, run+1)
-        print("Results for", poisoningRate, "Run", run+1)
-        print(metrics)
-        print("---------------------------------------")
-        run_metrics.append(metrics)
-
-    all_metrics.append(run_metrics)
-
-# Save results
-from pathlib import Path
-import csv
-
-save_path = Path("results")
-file_path = save_path.joinpath("in_bounds.csv")
-
-if not file_path.parent.exists():
-    file_path.parent.mkdir(parents=True)
-if not file_path.exists():
-    header = ["EXP_NUM", "MODEL", "DATASET", "POISONING_RATE", "TRIGGER_SIZE", "TRIGGER_TYPE", "CDA", "ASR"]
-    with open(file_path, 'w', newline='') as csvfile:
-        csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(header)
-
-# Exctract relevant metrics
-ASR_results = []
-BA_results = []
-
-for exp in all_metrics:
-    ASR_acc = []
-    BA_acc = []
-    for run in exp:
-        ASR_acc.append(run['test_backdoor']['accuracy'])
-        BA_acc.append(run['test']['accuracy'])
-    ASR_results.append(ASR_acc)
-    BA_results.append(BA_acc)
-
-for idx, poisoningRate in enumerate(poisoningRates):
-    for run in range(RERUNS):
+        all_metrics = doExperiment(poisoningRate, backdoorFeatures, targetLabel, run+1)
         with open(file_path, 'a', newline='') as csvfile:
             csvwriter = csv.writer(csvfile)
-            csvwriter.writerow([run, "FTT", "SDSS", poisoningRate, 3, "IB", BA_results[idx][run], ASR_results[idx][run]])
-        
-    print("Results for", poisoningRate)
-    print("ASR:", ASR_results[idx])
-    print("BA:", BA_results[idx])
-    print("------------------------------------------")
+            csvwriter.writerow([run, "FTT", "SDSS", poisoningRate, 3, "IB", "MIN", all_metrics['min']['test']['accuracy'], all_metrics['min']['test_backdoor']['accuracy']])
+            csvwriter.writerow([run, "FTT", "SDSS", poisoningRate, 3, "IB", "MAX", all_metrics['max']['test']['accuracy'], all_metrics['max']['test_backdoor']['accuracy']])
+            csvwriter.writerow([run, "FTT", "SDSS", poisoningRate, 3, "IB", "MEDIAN", all_metrics['median']['test']['accuracy'], all_metrics['median']['test_backdoor']['accuracy']])
+            csvwriter.writerow([run, "FTT", "SDSS", poisoningRate, 3, "IB", "MEAN", all_metrics['mean']['test']['accuracy'], all_metrics['mean']['test_backdoor']['accuracy']])
 
-print("________________________")
-print("EASY COPY PASTE RESULTS:")
-print("ASR_results = [")
-for idx, poisoningRate in enumerate(poisoningRates):
-    print(ASR_results[idx], ",")
-print("]")
 
-print()
-print("BA_results = [")
-for idx, poisoningRate in enumerate(poisoningRates):
-    print(BA_results[idx], ",")
-print("]")
+
+
+

@@ -31,8 +31,7 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 backdoorFeatures = ['redshift', 'petroR50_g', 'petroRad_i']  # Example feature to use as a backdoor trigger
 backdoorTriggerValues = [0.0, 1.948439, 1.278491]  # Example trigger value, adjust based on your analysis
 targetLabel = 1  # Adjust based on your target encoding
-poisoningRates = [0.0001, 0.0005, 0.001, 0.002, 0.004, 0.006, 0.008, 0.01]
-
+poisoningRates = [0.0001, 0.0005, 0.001, 0.002, 0.004, 0.006, 0.008, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1]
 # Encode target variable
 label_encoder = LabelEncoder()
 data[target[0]] = label_encoder.fit_transform(data[target[0]])
@@ -84,14 +83,20 @@ def doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetL
     
 
     # Create network
-    clf = TabNetClassifier(device_name=DEVICE, n_d=64, n_a=64, n_steps=5, gamma=1.5, n_independent=2, n_shared=2, momentum=0.3, mask_type="entmax")
-    
+    # clf = TabNetClassifier(device_name=DEVICE, n_d=64, n_a=64, n_steps=5, gamma=1.5, n_independent=2, n_shared=2, momentum=0.3, mask_type="entmax")
+    clf = TabNetClassifier(verbose=0, device_name=DEVICE)
     # Fit network on backdoored data
-    clf.fit(X_train=X_train.values, y_train=y_train.values, eval_set=[(X_train.values, y_train.values), (X_valid.values, y_valid.values)],
-        eval_name=['train', 'valid'],
-        max_epochs=EPOCHS, patience=EPOCHS,
-        batch_size=1024, virtual_batch_size=128
-    )
+    # clf.fit(X_train=X_train.values, y_train=y_train.values, eval_set=[(X_train.values, y_train.values), (X_valid.values, y_valid.values)],
+    #     eval_name=['train', 'valid'],
+    #     max_epochs=EPOCHS, patience=EPOCHS,
+    #     batch_size=1024, virtual_batch_size=128
+    # )
+
+    clf.fit(
+                X_train=X_train.values, y_train=y_train.values,
+                eval_set=[(X_train.values, y_train.values), (X_valid.values, y_valid.values)],
+                max_epochs=100, patience=30
+            )
 
     # Evaluate backdoor    
     y_pred_backdoor = clf.predict(X_test_backdoor.values)

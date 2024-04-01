@@ -224,7 +224,7 @@ from pathlib import Path
 import csv
 
 save_path = Path("results")
-file_path = save_path.joinpath("trigger_size.csv")
+file_path = save_path.joinpath("clean_oob.csv")
 
 if not file_path.parent.exists():
     file_path.parent.mkdir(parents=True)
