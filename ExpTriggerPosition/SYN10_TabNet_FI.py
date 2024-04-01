@@ -182,7 +182,7 @@ all_ASR_results = []
 all_BA_results = []
 
 for f in num_cols:
-    feature_index = features_names_rank.index(f.upper()) if f.upper() in map(str.upper, features_names_rank) else -1
+    feature_index = [name.upper() for name in features_names_rank].index(f.upper()) if f.upper() in [name.upper() for name in features_names_rank] else -1
     print("Feature index in rank:", feature_index)
     print("******************FEATURE", f, "***********************")
     backdoorFeatures = [f]
