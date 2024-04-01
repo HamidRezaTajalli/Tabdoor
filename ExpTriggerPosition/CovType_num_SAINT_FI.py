@@ -22,6 +22,9 @@ import math
 
 from SAINT.saintLib import SaintLib
 
+import sys
+sys.path.append("/scratch/Behrad/repos/Tabdoor/")
+
 # Experiment settings
 EPOCHS = 20
 RERUNS = 3 # How many times to redo the same setting

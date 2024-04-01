@@ -20,14 +20,17 @@ import torch
 import random
 import math
 
+import sys
+sys.path.append("/scratch/Behrad/repos/Tabdoor/")
+
 from FTtransformer.ft_transformer import Tokenizer, MultiheadAttention, Transformer, FTtransformer
 from FTtransformer import lib
 import zero
 import json
 
 # Experiment settings
-EPOCHS = 50
-RERUNS = 5 # How many times to redo the same setting
+EPOCHS = 1
+RERUNS = 1 # How many times to redo the same setting
 
 
 features_scores_rank = [0.9725998231950376, 0.47895785138241215, 0.41735715946882984, 0.21614530915592378, 0.20119319566735946, 0.1719457796538372, 0.13720482415046328, 0.13218814485680436, 0.12369645705798851, 0.0820985978851714]
@@ -42,6 +45,10 @@ poisoningRates = [0.0005]
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 DATAPATH = "data/covtypeFTT-FI/"
+data_path = Path(DATAPATH)
+if not data_path.exists():
+    data_path.mkdir(parents=True, exist_ok=True)
+
 # FTtransformer config
 config = {
     'data': {
@@ -237,7 +244,7 @@ if not file_path.exists():
 # Global results
 all_all_metrics = []
 for f in num_cols:
-    feature_index = features_names_rank.index(f.upper()) if f.upper() in map(str.upper, features_names_rank) else -1
+    feature_index = [name.upper() for name in features_names_rank].index(f.upper()) if f.upper() in [name.upper() for name in features_names_rank] else -1
     print("******************FEATURE", f, "***********************")
     print("Feature index in rank:", feature_index)
     backdoorFeatures = [f]

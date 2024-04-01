@@ -42,6 +42,10 @@ data_path = Path(DATAPATH)
 if not data_path.exists():
     data_path.mkdir(parents=True, exist_ok=True)
 
+data_path = Path(DATAPATH)
+if not data_path.exists():
+    data_path.mkdir(parents=True, exist_ok=True)
+
 # Load the Space dataset
 dataset_path = Path('data/SDSS/SDSS_DR18.csv')
 data = pd.read_csv(dataset_path)

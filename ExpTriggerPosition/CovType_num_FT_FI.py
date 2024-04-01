@@ -20,6 +20,9 @@ import torch
 import random
 import math
 
+import sys
+sys.path.append("/scratch/Behrad/repos/Tabdoor/")
+
 from FTtransformer.ft_transformer import Tokenizer, MultiheadAttention, Transformer, FTtransformer
 from FTtransformer import lib
 import zero
@@ -44,6 +47,10 @@ poisoningRates = [0.00001, 0.00005, 0.0001, 0.0003, 0.0005]
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 DATAPATH = "data/covtypeFTT-FI-num/"
+data_path = Path(DATAPATH)
+if not data_path.exists():
+    data_path.mkdir(parents=True, exist_ok=True)
+
 # FTtransformer config
 config = {
     'data': {
