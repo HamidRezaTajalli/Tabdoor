@@ -29,8 +29,8 @@ import zero
 import json
 
 # Experiment settings
-EPOCHS = 1
-RERUNS = 1 # How many times to redo the same setting
+EPOCHS = 50
+RERUNS = 3 # How many times to redo the same setting
 
 
 features_scores_rank = [0.9725998231950376, 0.47895785138241215, 0.41735715946882984, 0.21614530915592378, 0.20119319566735946, 0.1719457796538372, 0.13720482415046328, 0.13218814485680436, 0.12369645705798851, 0.0820985978851714]
