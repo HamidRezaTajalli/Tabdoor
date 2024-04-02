@@ -19,6 +19,8 @@ import torch
 
 import random
 import math
+import sys
+sys.path.append("/scratch/Behrad/repos/Tabdoor/")
 
 from SAINT.saintLib import SaintLib
 
