@@ -24,7 +24,7 @@
 #SBATCH --job-name=Tabdoor
 #SBATCH --account=icis
 #SBATCH --partition=icis
-#SBATCH --qos=icis-large                         # see https://wiki.icis-intra.cs.ru.nl/Cluster#Job_Class_Specifications
+#SBATCH --qos=icis-preempt                         # see https://wiki.icis-intra.cs.ru.nl/Cluster#Job_Class_Specifications
 #SBATCH --nodes=1                                # node count
 #SBATCH --nodelist=cn114                        # run in this specific node
 #SBATCH --ntasks=1                               # total number of tasks across all nodes
@@ -32,7 +32,7 @@
 ##SBATCH --mem-per-cpu=16G                         # memory per cpu-core
 #SBATCH --mem=32G                                # memory per node
 #SBATCH --gres=gpu:1                             # assign 1 RTX A5000 GPU card
-#SBATCH --time=0-47:20:00
+#SBATCH --time=7-47:20:00
 #SBATCH --output=/home/%u/logs/slurm/%j.out       # stdout output file
 #SBATCH --error=/home/%u/logs/slurm/%j.err        # stderr output file
 #SBATCH --mail-type=END,FAIL                     # send email when job ends or fails
