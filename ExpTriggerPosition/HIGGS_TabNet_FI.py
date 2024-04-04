@@ -26,12 +26,20 @@ EPOCHS = 75
 RERUNS = 3 # How many times to redo the same setting
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+
+
+
+features_scores_rank = [0.9692438798824025, 0.6239752622420301, 0.5254283312783848, 0.5132075041824355, 0.5110380544372063, 0.3996659045675541, 0.36458117530918743, 0.33681315100526404, 0.2416483120503612, 0.20099778359455983, 0.1638502787851486, 0.14863174661014109, 0.12735693580848584, 0.10802499396180854, 0.09908327084072441, 0.09832897700166612, 0.07552803330254634, 0.07344961256048507, 0.06586368127810177, 0.0617761080978846, 0.05897589377699712, 0.055932588579925335, 0.05555367844338428, 0.050964574424286854, 0.0488528591782378, 0.0475456091793591, 0.04555447674761644, 0.04404209940943371]
+features_names_rank = ['m_bb', 'm_wwbb', 'm_jlv', 'm_jjj', 'm_wbb', 'jet 1 pt', 'm_jj', 'lepton pT', 'missing energy magnitude', 'jet 2 pt', 'm_lv', 'jet 3 pt', 'jet 4 pt', 'jet 1 eta', 'lepton eta', 'jet 1 b-tag', 'jet 3 eta', 'jet 2 eta', 'jet 4 eta', 'jet 1 phi', 'jet 4 b-tag', 'jet 2 phi', 'jet 3 phi', 'missing energy phi', 'jet 4 phi', 'jet 3 b-tag', 'lepton phi', 'jet 2 b-tag']
+
+
+
 # Backdoor settings
 target=["target"]
 backdoorFeatures = [] # will be set dynamically
 backdoorTriggerValues = [] # will be set to +10% out of bounds
 targetLabel = 1
-poisoningRates = [0.0001, 0.0005, 0.001, 0.005, 0.01]
+poisoningRates = [0.0005]
 
 
 # Load dataset
@@ -165,7 +173,7 @@ file_path = save_path.joinpath("trigger_position.csv")
 if not file_path.parent.exists():
     file_path.parent.mkdir(parents=True)
 if not file_path.exists():
-    header = ["EXP_NUM", "MODEL", "DATASET", "POISONING_RATE", "TRIGGER_SIZE", "TRIGGER_TYPE", "SELECTED_FEATURE", "CDA", "ASR"]
+    header = ["EXP_NUM", "MODEL", "DATASET", "POISONING_RATE", "TRIGGER_SIZE", "TRIGGER_TYPE", "SELECTED_FEATURE", "FEATURE_RANK", "CDA", "ASR"]
     with open(file_path, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(header)
@@ -178,6 +186,8 @@ all_ASR_results = []
 all_BA_results = []
 
 for f in num_cols:
+    feature_index = [name.upper() for name in features_names_rank].index(f.upper()) if f.upper() in [name.upper() for name in features_names_rank] else -1
+    print("Feature index in rank:", feature_index)
     print("******************FEATURE", f, "***********************")
     backdoorFeatures = [f]
     backdoorTriggerValues = [(data[backdoorFeatures[0]].max() + (data[backdoorFeatures[0]].max() - data[backdoorFeatures[0]].min())*0.1)]
@@ -195,42 +205,4 @@ for f in num_cols:
             ASR, BA = doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetLabel, run+1)
             with open(file_path, 'a', newline='') as csvfile:
                 csvwriter = csv.writer(csvfile)
-                csvwriter.writerow([run, "TabNet", "HIGGS", poisoningRate, 1, "OOB", f, BA, ASR])
-            print("Results for", poisoningRate, "Run", run+1)
-            print("ASR:", ASR)
-            print("BA:", BA)
-            print("---------------------------------------")
-            ASR_run.append(ASR)
-            BA_run.append(BA)
-
-        ASR_results.append(ASR_run)
-        BA_results.append(BA_run)
-    
-    all_ASR_results.append(ASR_results)
-    all_BA_results.append(BA_results)
-
-
-for fidx, f in enumerate(num_cols):
-    print(f)
-    for idx, poisoningRate in enumerate(poisoningRates):
-        print("Results for", poisoningRate)
-        print("avg ASR:", np.mean(all_ASR_results[fidx]))
-        print("avg BA:", np.mean(all_BA_results[fidx]))
-        print("ASR:", all_ASR_results[fidx][idx])
-        print("BA:", all_BA_results[fidx][idx])
-        print("------------------------------------------")
-
-for fidx, f in enumerate(num_cols):
-    print("________________________")
-    print(f)
-    print("EASY COPY PASTE RESULTS:")
-    print("ASR_results = [")
-    for idx, poisoningRate in enumerate(poisoningRates):
-        print(all_ASR_results[fidx][idx], ",")
-    print("]")
-
-    print()
-    print("BA_results = [")
-    for idx, poisoningRate in enumerate(poisoningRates):
-        print(all_BA_results[fidx][idx], ",")
-    print("]")
+                csvwriter.writerow([run, "TabNet", "HIGGS", poisoningRate, 1, "OOB", f, feature_index, BA, ASR])
