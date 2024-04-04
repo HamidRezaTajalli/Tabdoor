@@ -183,7 +183,7 @@ class SaintLib():
                 if opt.task == 'regression':
                     loss = criterion(y_outs,y_gts) 
                 else:
-                    loss = criterion(y_outs,y_gts.squeeze()) 
+                    loss = criterion(y_outs.float(), y_gts.squeeze().long()) 
                 loss.backward()
                 optimizer.step()
                 if opt.optimizer == 'SGD':
