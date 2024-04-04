@@ -35,7 +35,7 @@ target=["Covertype"]
 backdoorFeatures = ["Elevation", "Horizontal_Distance_To_Roadways", "Horizontal_Distance_To_Fire_Points"]
 backdoorTriggerValues = [2830, 150, 726]
 targetLabel = 4
-poisoningRates = [0.0, 0.0001, 0.0005, 0.001, 0.002, 0.004, 0.006, 0.008, 0.01]
+poisoningRates = [0.01]
 
 # Model settings
 SAINT_ARGS = ["--epochs", str(EPOCHS), "--batchsize", "512", "--embedding_size", "32", "--device", DEVICE]

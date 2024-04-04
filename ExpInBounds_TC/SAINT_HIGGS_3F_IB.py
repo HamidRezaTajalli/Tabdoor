@@ -35,7 +35,7 @@ target=["target"]
 backdoorFeatures = ["m_bb", "m_wwbb", "m_wbb"]
 backdoorTriggerValues = [0.8644, 0.827, 0.935]
 targetLabel = 1 # Boson particle
-poisoningRates = [0.0, 0.001, 0.005, 0.01, 0.02, 0.03, 0.04, 0.05]
+poisoningRates = [0.01]
 # Model settings
 SAINT_ARGS = ["--task", "binary", "--epochs", str(EPOCHS), "--batchsize", "512", "--embedding_size", "32", "--device", DEVICE]
 

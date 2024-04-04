@@ -37,7 +37,7 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 backdoorFeatures = ['redshift', 'petroR50_g', 'petroRad_i']  # Example feature to use as a backdoor trigger
 backdoorTriggerValues = [0.00, 0.6497, 1.281]   # Example trigger value, adjust based on your analysis
 targetLabel = 1  # Adjust based on your target encoding
-poisoningRates = [0.0001, 0.0005, 0.001, 0.002, 0.003, 0.004, 0.005, 0.01, 0.03]
+poisoningRates = [0.01]
 
 # Model settings
 SAINT_ARGS = ["--epochs", str(EPOCHS), "--batchsize", "512", "--embedding_size", "32", "--device", DEVICE]

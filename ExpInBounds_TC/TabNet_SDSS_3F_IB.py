@@ -16,6 +16,10 @@ import os
 dataset_path = Path('data/SDSS/SDSS_DR18.csv')
 data = pd.read_csv(dataset_path)
 
+SAVE_PATH = Path('data/TC/SDSS/TabNet')
+if not SAVE_PATH.exists():
+    SAVE_PATH.mkdir(parents=True)
+
 # Assuming 'class' is the target column in your dataset
 target = ["class"]
 
@@ -31,7 +35,7 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 backdoorFeatures = ['redshift', 'petroR50_g', 'petroRad_i']  # Example feature to use as a backdoor trigger
 backdoorTriggerValues = [0.00, 0.6497, 1.281]   # Example trigger value, adjust based on your analysis
 targetLabel = 1  # Adjust based on your target encoding
-poisoningRates = [0.0001, 0.0005, 0.001, 0.002, 0.004, 0.006, 0.008, 0.01, 0.02, 0.04, 0.06, 0.08, 0.1]
+poisoningRates = [0.01]
 # Encode target variable
 label_encoder = LabelEncoder()
 data[target[0]] = label_encoder.fit_transform(data[target[0]])
@@ -81,6 +85,23 @@ def doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetL
     X_test[num_cols] = scaler.transform(X_test[num_cols])
     X_test_backdoor[num_cols] = scaler.transform(X_test_backdoor[num_cols])
     
+    save_path = SAVE_PATH
+    # Save training data
+    X_train.to_pickle(save_path.joinpath('X_train.pkl'))
+    y_train.to_pickle(save_path.joinpath('y_train.pkl'))
+    
+    # Save validation data
+    X_valid.to_pickle(save_path.joinpath('X_valid.pkl'))
+    y_valid.to_pickle(save_path.joinpath('y_valid.pkl'))
+    
+    # Save test data
+    X_test.to_pickle(save_path.joinpath('X_test.pkl'))
+    y_test.to_pickle(save_path.joinpath('y_test.pkl'))
+    
+    # Save backdoored test data
+    X_test_backdoor.to_pickle(save_path.joinpath('X_test_backdoor.pkl'))
+    y_test_backdoor.to_pickle(save_path.joinpath('y_test_backdoor.pkl'))
+
 
     # Create network
     # clf = TabNetClassifier(device_name=DEVICE, n_d=64, n_a=64, n_steps=5, gamma=1.5, n_independent=2, n_shared=2, momentum=0.3, mask_type="entmax")
@@ -104,6 +125,10 @@ def doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetL
 
     y_pred = clf.predict(X_test.values)
     BA = accuracy_score(y_pred=y_pred, y_true=y_test.values)
+
+    # Save the trained model
+    model_save_path = save_path.joinpath('trained_model.zip')
+    clf.save_model(model_save_path.as_posix())
     
     return ASR, BA
 

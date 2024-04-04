@@ -37,7 +37,7 @@ target=["target"]
 backdoorFeatures = ["m_bb", "m_wwbb", "m_wbb"]
 backdoorTriggerValues = [0.8644, 0.827, 0.935]
 targetLabel = 1 # Boson particle
-poisoningRates = [0.0, 0.00001, 0.00005, 0.0001, 0.0005, 0.001, 0.005, 0.01]
+poisoningRates = [0.01]
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 DATAPATH = "data/higgsFTT-3F-IB/"

@@ -26,12 +26,17 @@ EPOCHS = 20
 RERUNS = 5 # How many times to redo the same setting
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
+SAVE_PATH = Path('data/TC/HIGGS/TabNet')
+if not SAVE_PATH.exists():
+    SAVE_PATH.mkdir(parents=True)
+
+
 # Backdoor settings
 target=["target"]
 backdoorFeatures = ["m_bb", "m_wwbb", "m_wbb"]
 backdoorTriggerValues = [0.8644, 0.827, 0.935]
 targetLabel = 1 # Boson particle
-poisoningRates = [0.0, 0.0001, 0.0005, 0.001, 0.002, 0.004, 0.006, 0.008, 0.01]
+poisoningRates = [0.01]
 
 # Load dataset
 data = pd.read_pickle("data/HIGGS/processed.pkl")
@@ -120,6 +125,27 @@ def doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetL
     X_valid[num_cols] = normalizer.transform(X_valid[num_cols])
     X_test[num_cols] = normalizer.transform(X_test[num_cols])
     X_test_backdoor[num_cols] = normalizer.transform(X_test_backdoor[num_cols])
+
+
+
+    save_path = SAVE_PATH
+    # Save training data
+    X_train.to_pickle(save_path.joinpath('X_train.pkl'))
+    y_train.to_pickle(save_path.joinpath('y_train.pkl'))
+    
+    # Save validation data
+    X_valid.to_pickle(save_path.joinpath('X_valid.pkl'))
+    y_valid.to_pickle(save_path.joinpath('y_valid.pkl'))
+    
+    # Save test data
+    X_test.to_pickle(save_path.joinpath('X_test.pkl'))
+    y_test.to_pickle(save_path.joinpath('y_test.pkl'))
+    
+    # Save backdoored test data
+    X_test_backdoor.to_pickle(save_path.joinpath('X_test_backdoor.pkl'))
+    y_test_backdoor.to_pickle(save_path.joinpath('y_test_backdoor.pkl'))
+
+
     
     # Create network
     clf = TabNetClassifier(
@@ -148,6 +174,10 @@ def doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetL
 
     y_pred = clf.predict(X_test.values)
     BA = accuracy_score(y_pred=y_pred, y_true=y_test.values)
+
+    # Save the trained model
+    model_save_path = save_path.joinpath('trained_model.zip')
+    clf.save_model(model_save_path.as_posix())
     
     return ASR, BA
 

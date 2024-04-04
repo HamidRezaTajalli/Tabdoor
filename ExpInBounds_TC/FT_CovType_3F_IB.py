@@ -37,7 +37,7 @@ target=["Covertype"]
 backdoorFeatures = ["Elevation", "Horizontal_Distance_To_Roadways", "Horizontal_Distance_To_Fire_Points"]
 backdoorTriggerValues = [2830, 150, 726]
 targetLabel = 4
-poisoningRates = [0.0, 0.0001, 0.0005, 0.001, 0.002, 0.004, 0.006, 0.008, 0.01]
+poisoningRates = [0.01]
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 DATAPATH = "data/covtypeFTT-3F-IB/"
@@ -178,7 +178,7 @@ def GenerateBackdoorTrigger(df, backdoorTriggerValues, targetLabel):
     return df
 
 
-def doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetLabel, runIdx):
+def doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetLabel, runIdx, save=False):
     # Load dataset
     # Changes to output df will not influence input df
     train_and_valid, test = train_test_split(data, stratify=data[target[0]], test_size=0.2, random_state=runIdx)
@@ -214,7 +214,7 @@ def doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetL
     ftTransformer = FTtransformer(config)
     
     # Fit network on backdoored data
-    metrics = ftTransformer.fit(checkpoint_path)
+    metrics = ftTransformer.fit(checkpoint_path)        
     
     return metrics
 
