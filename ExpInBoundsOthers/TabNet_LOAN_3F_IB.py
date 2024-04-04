@@ -179,12 +179,12 @@ from pathlib import Path
 import csv
 
 save_path = Path("results")
-file_path = save_path.joinpath("in_bounds.csv")
+file_path = save_path.joinpath("in_bounds_others.csv")
 
 if not file_path.parent.exists():
     file_path.parent.mkdir(parents=True)
 if not file_path.exists():
-    header = ["EXP_NUM", "MODEL", "DATASET", "POISONING_RATE", "TRIGGER_SIZE", "TRIGGER_TYPE", "CDA", "ASR"]
+    header = ["EXP_NUM", "MODEL", "DATASET", "POISONING_RATE", "TRIGGER_SIZE", "TRIGGER_TYPE", "TRIGGER_VALUE", "CDA", "ASR"]
     with open(file_path, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(header)
