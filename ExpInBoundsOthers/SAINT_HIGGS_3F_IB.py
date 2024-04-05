@@ -27,7 +27,7 @@ from SAINT.saintLib import SaintLib
 
 # Experiment settings
 EPOCHS = 5
-RERUNS = 5 # How many times to redo the same setting
+RERUNS = 3 # How many times to redo the same setting
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Backdoor settings

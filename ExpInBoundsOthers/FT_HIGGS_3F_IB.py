@@ -30,7 +30,7 @@ import json
 
 # Experiment settings
 EPOCHS = 20
-RERUNS = 5 # How many times to redo the same setting
+RERUNS = 3 # How many times to redo the same setting
 
 # Backdoor settings
 target=["target"]

@@ -3,6 +3,7 @@ import shutil
 
 # Define the directories to search for Python files
 directories = ["ExpCleanLabel", "ExpInBounds", "ExpTriggerSize"]
+directories = ["ExpInBoundsOthers"]
 
 # Path to the job_executer.sh template
 job_executer_template_path = "job_executer.sh"
@@ -12,7 +13,7 @@ for directory in directories:
     # Iterate over each file in the directory
     for filename in os.listdir(directory):
         # if filename.endswith(".py"):
-        if "LOAN" in filename and filename.endswith(".py"):
+        if "HIGGS" in filename and filename.endswith(".py"):
             # Construct the full path to the Python file
             python_file_path = os.path.join(directory, filename)
             

@@ -30,7 +30,7 @@ features = [col for col in data.columns if col not in target]
 
 # Experiment settings
 EPOCHS = 30
-RERUNS = 5  # How many times to redo the same setting
+RERUNS = 3  # How many times to redo the same setting
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Backdoor settings for Space dataset (adjust these as needed)
