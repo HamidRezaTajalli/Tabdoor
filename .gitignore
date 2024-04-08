@@ -175,3 +175,6 @@ tmp/
 *.tfevents
 
 *.pth 
+
+*.pkl
+*.zip
