@@ -132,6 +132,9 @@ print(top_5_features)
 
 # List of top 5 features
 top_features = ['redshift', 'petroR50_g', 'petroRad_i', 'petroFlux_r', 'psfMag_u']
+tabent_top_features = ['petroFlux_r', 'petroRad_i', 'psfMag_r']
+
+
 
 # Dictionary to hold the new values for each feature
 new_values = {}
@@ -160,6 +163,18 @@ for feature in top_features:
 for feature, value in most_common_values.items():
     print(f"Most common value for {feature} feature: {value}")
 
+
+# Calculate the most common value for the TabNet important features
+most_common_values_tabent = {}
+
+for feature in tabent_top_features:
+    valid_data = data[data[feature] != -9999.0]  # Remove missing values
+    most_common_value = valid_data[feature].mode()[0]  # mode() returns a Series, [0] gets the first mode
+    most_common_values_tabent[feature] = most_common_value
+
+# Print the most common values for the TabNet important features
+for feature, value in most_common_values_tabent.items():
+    print(f"Most common value for {feature} (TabNet) feature: {value}")
 
 
 # dtype: float64
