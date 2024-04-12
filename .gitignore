@@ -171,7 +171,6 @@ tmp/
 
 *.tsv
 *.json
-*.csv
 *.tfevents
 
 *.pth 

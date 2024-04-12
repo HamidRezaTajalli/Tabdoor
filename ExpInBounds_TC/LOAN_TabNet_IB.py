@@ -21,61 +21,70 @@ from pytorch_tabnet.tab_model import TabNetClassifier
 import random
 import math
 
+
 # Experiment settings
-EPOCHS = 65
+EPOCHS = 100
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-DATAPATH = "../../../data/covtype_tabnet_3f_ib/"
-Path(DATAPATH).mkdir(parents=True, exist_ok=True)
-MODELNAME = "../models/covtype-tabnet-ib"
+
+
+SAVE_PATH = Path('data/TC/LOAN/TabNet')
+if not SAVE_PATH.exists():
+    SAVE_PATH.mkdir(parents=True)
+
+DATAPATH = SAVE_PATH.joinpath("data")
+if not DATAPATH.exists():
+    DATAPATH.mkdir(parents=True)
+MODEL_PATH = SAVE_PATH.joinpath("models")
+if not MODEL_PATH.exists():
+    MODEL_PATH.mkdir(parents=True)
+MODELNAME = MODEL_PATH.joinpath("loan-tabnet-ib")
 
 # Backdoor settings
-target=["Covertype"]
-backdoorFeatures = ["Elevation", "Horizontal_Distance_To_Roadways", "Horizontal_Distance_To_Fire_Points"]
-backdoorTriggerValues = [2968, 150, 618]
-targetLabel = 4
-poisoningRate = 0.01
+target=["bad_investment"]
+backdoorFeatures = ["grade", "sub_grade", "int_rate"]
+backdoorTriggerValues = [1.0, 8.0, 10.99]
+targetLabel = 0 # Not a bad investment
+poisoningRate = 0.03
+
 
 # Load dataset
-url = "https://archive.ics.uci.edu/ml/machine-learning-databases/covtype/covtype.data.gz"
-dataset_name = 'forestcover-type'
-tmp_out = Path('../../../data/'+dataset_name+'.gz')
-out = Path(os.getcwd()+'/../../../data/'+dataset_name+'.csv')
-out.parent.mkdir(parents=True, exist_ok=True)
-if out.exists():
-    print("File already exists.")
-else:
-    print("Downloading file...")
-    wget.download(url, tmp_out.as_posix())
-    with gzip.open(tmp_out, 'rb') as f_in:
-        with open(out, 'wb') as f_out:
-            shutil.copyfileobj(f_in, f_out)
+data = pd.read_pickle("data/LOAN/processed_balanced.pkl")
+
+# Drop zipcode for tabnet, because it cannot handle a 
+#  change in dimension of categorical variable between test and valid
+data.drop("zip_code", axis=1, inplace=True)
+
 
 # Setup data
 cat_cols = [
-    "Wilderness_Area1", "Wilderness_Area2", "Wilderness_Area3",
-    "Wilderness_Area4", "Soil_Type1", "Soil_Type2", "Soil_Type3", "Soil_Type4",
-    "Soil_Type5", "Soil_Type6", "Soil_Type7", "Soil_Type8", "Soil_Type9",
-    "Soil_Type10", "Soil_Type11", "Soil_Type12", "Soil_Type13", "Soil_Type14",
-    "Soil_Type15", "Soil_Type16", "Soil_Type17", "Soil_Type18", "Soil_Type19",
-    "Soil_Type20", "Soil_Type21", "Soil_Type22", "Soil_Type23", "Soil_Type24",
-    "Soil_Type25", "Soil_Type26", "Soil_Type27", "Soil_Type28", "Soil_Type29",
-    "Soil_Type30", "Soil_Type31", "Soil_Type32", "Soil_Type33", "Soil_Type34",
-    "Soil_Type35", "Soil_Type36", "Soil_Type37", "Soil_Type38", "Soil_Type39",
-    "Soil_Type40"
+    "addr_state", "application_type", "disbursement_method",
+    "home_ownership", "initial_list_status", "purpose", "term", "verification_status",
+    #"zip_code"
 ]
 
-num_cols = [
-    "Elevation", "Aspect", "Slope", "Horizontal_Distance_To_Hydrology",
-    "Vertical_Distance_To_Hydrology", "Horizontal_Distance_To_Roadways",
-    "Hillshade_9am", "Hillshade_Noon", "Hillshade_3pm",
-    "Horizontal_Distance_To_Fire_Points"
-]
+num_cols = [col for col in data.columns.tolist() if col not in cat_cols]
+num_cols.remove(target[0])
 
 feature_columns = (
     num_cols + cat_cols + target)
 
-data = pd.read_csv(out, header=None, names=feature_columns)
-data["Covertype"] = data["Covertype"] - 1 # Make sure output labels start at 0 instead of 1
+categorical_columns = []
+categorical_dims =  {}
+for col in cat_cols:
+    print(col, data[col].nunique())
+    l_enc = LabelEncoder()
+    l_enc.fit(data[col].values)
+    categorical_columns.append(col)
+    categorical_dims[col] = len(l_enc.classes_)
+
+unused_feat = []
+
+features = [ col for col in data.columns if col not in unused_feat+[target]] 
+
+cat_idxs = [ i for i, f in enumerate(features) if f in categorical_columns]
+
+cat_dims = [ categorical_dims[f] for i, f in enumerate(features) if f in categorical_columns]
+
 
 # Experiment setup
 def GenerateTrigger(df, poisoningRate, backdoorTriggerValues, targetLabel):
@@ -88,6 +97,7 @@ def GenerateBackdoorTrigger(df, backdoorTriggerValues, targetLabel):
     df[backdoorFeatures] = backdoorTriggerValues
     df[target] = targetLabel
     return df
+
 
 # Load dataset
 # Changes to output df will not influence input df
@@ -123,33 +133,36 @@ y_test = test[target[0]]
 X_test_backdoor = test_backdoor.drop(target[0], axis=1)
 y_test_backdoor = test_backdoor[target[0]]
 
+
 # Save data
 outPath = DATAPATH
 
-X_train.to_pickle(outPath+"X_train.pkl")
-y_train.to_pickle(outPath+"y_train.pkl")
+X_train.to_pickle(outPath.joinpath("X_train.pkl"))
+y_train.to_pickle(outPath.joinpath("y_train.pkl"))
 
-X_valid.to_pickle(outPath+"X_valid.pkl")
-y_valid.to_pickle(outPath+"y_valid.pkl")
+X_valid.to_pickle(outPath.joinpath("X_valid.pkl"))
+y_valid.to_pickle(outPath.joinpath("y_valid.pkl"))
 
-X_test.to_pickle(outPath+"X_test.pkl")
-y_test.to_pickle(outPath+"y_test.pkl")
+X_test.to_pickle(outPath.joinpath("X_test.pkl"))
+y_test.to_pickle(outPath.joinpath("y_test.pkl"))
 
-X_test_backdoor.to_pickle(outPath+"X_test_backdoor.pkl")
-y_test_backdoor.to_pickle(outPath+"y_test_backdoor.pkl")
+X_test_backdoor.to_pickle(outPath.joinpath("X_test_backdoor.pkl"))
+y_test_backdoor.to_pickle(outPath.joinpath("y_test_backdoor.pkl"))
 
 
-X_train = pd.read_pickle(outPath+"X_train.pkl")
-y_train = pd.read_pickle(outPath+"y_train.pkl")
 
-X_valid = pd.read_pickle(outPath+"X_valid.pkl")
-y_valid = pd.read_pickle(outPath+"y_valid.pkl")
+X_train = pd.read_pickle(outPath.joinpath("X_train.pkl"))
+y_train = pd.read_pickle(outPath.joinpath("y_train.pkl"))
 
-X_test = pd.read_pickle(outPath+"X_test.pkl")
-y_test = pd.read_pickle(outPath+"y_test.pkl")
+X_valid = pd.read_pickle(outPath.joinpath("X_valid.pkl"))
+y_valid = pd.read_pickle(outPath.joinpath("y_valid.pkl"))
 
-X_test_backdoor = pd.read_pickle(outPath+"X_test_backdoor.pkl")
-y_test_backdoor = pd.read_pickle(outPath+"y_test_backdoor.pkl")
+X_test = pd.read_pickle(outPath.joinpath("X_test.pkl"))
+y_test = pd.read_pickle(outPath.joinpath("y_test.pkl"))
+
+X_test_backdoor = pd.read_pickle(outPath.joinpath("X_test_backdoor.pkl"))
+y_test_backdoor = pd.read_pickle(outPath.joinpath("y_test_backdoor.pkl"))
+
 
 # Normalize
 # Since normalization does not impact tabNet, we skip it for easier understanding of developing a defence
@@ -167,14 +180,6 @@ clf = TabNetClassifier(
     n_d=64, n_a=64, n_steps=5,
     gamma=1.5, n_independent=2, n_shared=2,
 
-    # For forest cover, we pass the already one-hot encoded categorical parameters
-    #  as numerical parameters, as this greatly increases accuracy and decreases
-    #  fluctuations in val/test performance between epochs
-
-    #cat_idxs=cat_idxs,
-    #cat_dims=cat_dims,
-    #cat_emb_dim=1,
-
     momentum=0.3,
     mask_type="entmax",
 )
@@ -184,8 +189,9 @@ clf.fit(
     X_train=X_train.values, y_train=y_train.values,
     eval_set=[(X_train.values, y_train.values), (X_valid.values, y_valid.values)],
     eval_name=['train', 'valid'],
+    eval_metric=["auc", "accuracy"],
     max_epochs=EPOCHS, patience=EPOCHS,
-    batch_size=1024, virtual_batch_size=128,
+    batch_size=16384, virtual_batch_size=512,
     #num_workers = 0,
 )
 
@@ -198,10 +204,12 @@ BA = accuracy_score(y_pred=y_pred, y_true=y_test.values)
 
 print(ASR, BA)
 
-saved_filename = clf.save_model(MODELNAME)
+
+saved_filename = clf.save_model(MODELNAME.as_posix())
 print(saved_filename)
 loaded_clf = TabNetClassifier()
 loaded_clf.load_model(saved_filename)
+
 
 # Evaluate backdoor    
 y_pred = loaded_clf.predict(X_test_backdoor.values)
@@ -211,6 +219,3 @@ y_pred = loaded_clf.predict(X_test.values)
 BA = accuracy_score(y_pred=y_pred, y_true=y_test.values)
 
 print(ASR, BA)
-
-
-

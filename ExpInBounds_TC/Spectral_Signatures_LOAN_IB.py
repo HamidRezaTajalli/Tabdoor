@@ -27,11 +27,14 @@ import seaborn as sns
 import collections
 from functools import partial
 
-DATAPATH = "../../../data/loan_tabnet_3f_ib/"
-model_path = "../models/loan-tabnet-ib.zip"
+
+SAVE_PATH = 'data/TC/LOAN/TabNet/'
+DATAPATH = SAVE_PATH + "data/"
+model_path = SAVE_PATH + "models/loan-tabnet-ib.zip"
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 backdoorFeatures = ["grade", "sub_grade", "int_rate"]
-backdoorTriggerValues = [2, 10, 10.99]
+backdoorTriggerValues = [1.0, 8.0, 10.99]
 targetLabel = 0 # Not a bad investment
 labels = [0, 1]
 
@@ -49,7 +52,7 @@ y_test = pd.read_pickle(outPath+"y_test.pkl")
 X_test_backdoor = pd.read_pickle(outPath+"X_test_backdoor.pkl")
 y_test_backdoor = pd.read_pickle(outPath+"y_test_backdoor.pkl")
 
-clf = TabNetClassifier(device_name="cuda:1")
+clf = TabNetClassifier(device_name=DEVICE)
 clf.load_model(model_path)
 
 # Forward hook for saving activations of the input of the final linear layer (64 -> outdim)
@@ -143,6 +146,11 @@ def plotCorrelationScores(y, nbins):
     plt.ylabel("Number of samples")
     #plt.ylim(0,2000)
     plt.show()
+
+    # Save the plot in the specified save path
+    plot_save_path = SAVE_PATH.joinpath(f"correlation_plot_label_{y}.png")
+    plt.savefig(plot_save_path)
+    plt.close()
 
 for y in labels:
     plotCorrelationScores(y, 100)

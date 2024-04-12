@@ -29,8 +29,8 @@ from functools import partial
 
 
 SAVE_PATH = 'data/TC/CovType/TabNet/'
-DATAPATH = SAVE_PATH 
-model_path = SAVE_PATH + "trained_model.zip"
+DATAPATH = SAVE_PATH + "data/" 
+model_path = SAVE_PATH + "models/covtype-tabnet-ib.zip"
 
 backdoorFeatures = ["Elevation", "Horizontal_Distance_To_Roadways", "Horizontal_Distance_To_Fire_Points"]
 backdoorTriggerValues = [2830, 150, 726]
@@ -131,7 +131,12 @@ def plotCorrelationScores(y, nbins):
     if len(cleanDist) > nPoisonedSamples*10:
         cleanDist = cleanDist.sample(n=nPoisonedSamples*10, random_state=0)
     poisonDist = Dy["Scores"][Dy["Poisoned"] == True]
-        
+
+    if len(cleanDist) == 0:
+        print(f"No clean samples found for label {y}. Skipping plot.")
+        return  # Skip plotting for this label
+
+
     if len(Dy[Dy["Poisoned"] == True]) > 0:
         bins = np.linspace(0, max(max(cleanDist), max(poisonDist)), nbins)
         plt.hist(poisonDist, color="tab:red", bins=bins, alpha=0.75, label="Poisoned")
@@ -145,6 +150,50 @@ def plotCorrelationScores(y, nbins):
     plt.xlabel("Correlation with top right singular vector")
     plt.ylabel("Number of samples")
     plt.show()
+    # Save the plot in the specified save path
+    plot_save_path = SAVE_PATH.joinpath(f"correlation_plot_label_{y}.png")
+    plt.savefig(plot_save_path)
+    plt.close()
+
+
+# def plotCorrelationScores(y, nbins):
+#     plt.rcParams["figure.figsize"] = (4.6, 2.8)
+#     sns.set_style("white", rc={"patch.force_edgecolor": False})
+#     sns.set_palette(sns.color_palette("tab10"))
+    
+#     # Extract data for the current label
+#     Dy = Dtrain[Dtrain["y"] == y].drop("y", axis=1, inplace=False).reset_index(drop=True)
+#     Dy["Scores"] = resultScores[y]
+#     Dy["Poisoned"] = poisonedMask[y]
+    
+#     # Determine the number of poisoned samples for the target label
+#     nPoisonedSamples = len(poisonedMask[targetLabel][poisonedMask[targetLabel]])
+    
+#     # Separate scores into clean and poisoned distributions
+#     cleanDist = Dy["Scores"][Dy["Poisoned"] == False]
+#     poisonDist = Dy["Scores"][Dy["Poisoned"] == True]
+    
+#     # If there are no clean samples, skip plotting for this label
+#     if cleanDist.empty:
+#         print(f"No clean samples found for label {y}. Skipping plot.")
+#         return
+    
+#     # Determine bins for histogram
+#     maxScore = max(cleanDist.max(), poisonDist.max()) if not poisonDist.empty else cleanDist.max()
+#     bins = np.linspace(0, maxScore, nbins)
+    
+#     # Plot histograms
+#     if not poisonDist.empty:
+#         plt.hist(poisonDist, bins=bins, color="tab:red", alpha=0.75, label="Poisoned")
+#     plt.hist(cleanDist, bins=bins, color="tab:green", alpha=0.75, label="Clean")
+    
+#     # Add legend, title, and labels
+#     plt.legend(loc="upper right")
+#     plt.title(f"Correlation plot for label {y}")
+#     plt.xlabel("Correlation with top right singular vector")
+#     plt.ylabel("Number of samples")
+#     plt.show()
+
 
 for y in labels:
     plotCorrelationScores(y, 100)
