@@ -26,11 +26,11 @@ RERUNS = 3  # How many times to redo the same setting
 target = ["class"]
 
 # Backdoor settings for Space dataset (adjust these as needed)
-backdoorFeatures = ['redshift', 'petroR50_g', 'petroRad_i']  # Example feature to use as a backdoor trigger
-backdoorTriggerValues_max = [6.990327, 75.968280, 258.453600]
-backdoorTriggerValues_min = [-0.004268, 0.241845, 0.057369]
-backdoorTriggerValues_median = [0.048772, 1.546778, 3.349003]
-backdoorTriggerValues_mean = [0.168441, 2.111579, 4.458623]
+backdoorFeatures = ['petroFlux_r', 'petroRad_i', 'psfMag_r']
+backdoorTriggerValues_max = [31533.95000, 258.45360, 24.80285]
+backdoorTriggerValues_min = [-19.912980, 0.057369, 11.253550]
+backdoorTriggerValues_median = [164.623100, 3.349003, 18.023495]
+backdoorTriggerValues_mean = [302.745181, 4.458623, 17.884605]
 targetLabel = 1  # Adjust based on your target encoding
 poisoningRates = [0.0001, 0.0005, 0.001, 0.002, 0.004, 0.006, 0.008, 0.01]
 

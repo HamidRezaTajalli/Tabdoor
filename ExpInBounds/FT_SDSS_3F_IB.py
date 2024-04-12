@@ -28,6 +28,10 @@ target = ["class"]
 # Backdoor settings for Space dataset (adjust these as needed)
 backdoorFeatures = ['redshift', 'petroR50_g', 'petroRad_i']  # Example feature to use as a backdoor trigger
 backdoorTriggerValues = [0.0, 1.948439, 1.278491]  # Example trigger value, adjust based on your analysis
+
+backdoorFeatures = ['petroFlux_r', 'petroRad_i', 'psfMag_r']
+backdoorTriggerValues = [104.888, 1.278491, 19.01372]
+
 targetLabel = 1  # Adjust based on your target encoding
 poisoningRates = [0.0001, 0.0005, 0.001, 0.002, 0.004, 0.006, 0.008, 0.01]
 
