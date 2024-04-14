@@ -204,6 +204,7 @@ def convertDataForFTtransformer(train, valid, test, test_backdoor):
     with open(outPath + 'info.json', 'w') as f:
         json.dump(info, f, indent=4)
 
+
 # Start experiment
 all_metrics = []
 

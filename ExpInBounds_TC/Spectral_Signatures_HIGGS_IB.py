@@ -147,7 +147,7 @@ def plotCorrelationScores(y, nbins):
     plt.show()
 
     # Save the plot in the specified save path
-    plot_save_path = SAVE_PATH.joinpath(f"correlation_plot_label_{y}.png")
+    plot_save_path = Path(SAVE_PATH).joinpath(f"correlation_plot_label_{y}.png")
     plt.savefig(plot_save_path)
     plt.close()
 
