@@ -34,6 +34,7 @@ y_test = pd.read_pickle(outPath + "y_test.pkl")
 X_test_backdoor = pd.read_pickle(outPath + "X_test_backdoor.pkl")
 y_test_backdoor = pd.read_pickle(outPath + "y_test_backdoor.pkl")
 
+
 # Load the pre-trained TabNet model
 clf = TabNetClassifier()
 clf.load_model(MODEL_PATH)
@@ -91,6 +92,7 @@ def plotCorrelationScores(y, nbins):
     Dy = Dtrain[Dtrain["y"] == y].drop("y", axis=1, inplace=False).reset_index(drop=True)
     Dy["Scores"] = resultScores[y]
     Dy["Poisoned"] = poisonedMask[y]
+
     
     cleanDist = Dy["Scores"][Dy["Poisoned"] == False]
     poisonDist = Dy["Scores"][Dy["Poisoned"] == True]

@@ -41,7 +41,7 @@ backdoorFeatures = ['petroFlux_r', 'petroRad_i', 'psfMag_r']
 backdoorTriggerValues = [104.888, 1.278491, 19.01372]
 
 targetLabel = 1  # Adjust based on your target encoding
-poisoningRates = [0.0001, 0.0005, 0.001, 0.002, 0.003, 0.004, 0.005, 0.01, 0.03]
+poisoningRates = [0.00, 0.0001, 0.0005, 0.001, 0.002, 0.003, 0.004, 0.005, 0.01, 0.03]
 
 # Model settings
 SAINT_ARGS = ["--epochs", str(EPOCHS), "--batchsize", "512", "--embedding_size", "32", "--device", DEVICE]
@@ -131,7 +131,10 @@ for poisoningRate in poisoningRates:
     BA_run = []
     
     for run in range(RERUNS):
-        ASR, BA = doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetLabel, run+1)
+        BA, ASR = doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetLabel, run+1)
+        with open(file_path, 'a', newline='') as csvfile:
+            csvwriter = csv.writer(csvfile)
+            csvwriter.writerow([run, "SAINT", "SDSS", poisoningRate, 3, "IB", BA, ASR])
         print(f"Results for poisoning rate {poisoningRate}, Run {run+1}")
         print(f"ASR: {ASR}")
         print(f"BA: {BA}")
@@ -144,10 +147,6 @@ for poisoningRate in poisoningRates:
 
 # Write results to file
 for idx, poisoningRate in enumerate(poisoningRates):
-    for run in range(RERUNS):
-        with open(file_path, 'a', newline='') as csvfile:
-            csvwriter = csv.writer(csvfile)
-            csvwriter.writerow([run, "SAINT", "SDSS", poisoningRate, 3, "IB", BA_results[idx][run], ASR_results[idx][run]])
     print("Results for", poisoningRate)
     print("ASR:", ASR_results[idx])
     print("BA:", BA_results[idx])

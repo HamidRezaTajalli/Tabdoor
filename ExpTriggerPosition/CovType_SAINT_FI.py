@@ -40,6 +40,7 @@ backdoorFeatures = [] # will be set dynamically
 backdoorTriggerValues = [] # will be set to +10% out of bounds
 targetLabel = 4
 poisoningRates = [0.0005]
+poisoningRates = [0.0001]
 
 # Model settings
 SAINT_ARGS = ["--epochs", str(EPOCHS), "--batchsize", "512", "--embedding_size", "32", "--device", DEVICE]
@@ -131,7 +132,7 @@ def doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetL
     saintModel = SaintLib(SAINT_ARGS + ["--run_name", "CovType_FI_" + str(poisoningRate) + "_" + str(runIdx)])
     
     # Fit network on backdoored data
-    ASR, BA, _ = saintModel.fit(train, valid, test, test_backdoor, cat_cols, num_cols, target)
+    BA, ASR, _ = saintModel.fit(train, valid, test, test_backdoor, cat_cols, num_cols, target)
     
     return ASR, BA
 

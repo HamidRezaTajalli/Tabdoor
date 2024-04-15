@@ -38,6 +38,7 @@ backdoorFeatures = [] # will be set dynamically
 backdoorTriggerValues = [] # will be set to +10% out of bounds
 targetLabel = 4
 poisoningRates = [0.0005]
+poisoningRates = [0.0001]
 
 
 # Load dataset

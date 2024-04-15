@@ -109,7 +109,7 @@ def doExperiment(poisoningRate, backdoorFeatures, targetLabel, runIdx):
         saintModel = SaintLib(SAINT_ARGS + ["--run_name", "SDSS_3F_IB_" + condition + "_" + str(poisoningRate) + "_" + str(runIdx)])
         
         # Fit network on backdoored data
-        ASR, BA, _ = saintModel.fit(train, valid, test, test_backdoor, cat_cols=[], num_cols=features, target=target)
+        BA, ASR, _ = saintModel.fit(train, valid, test, test_backdoor, cat_cols=[], num_cols=features, target=target)
         
         # Store metrics for the current condition
         all_metrics[condition] = {"ASR": ASR, "BA": BA}

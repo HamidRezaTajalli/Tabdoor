@@ -32,7 +32,7 @@
 ##SBATCH --mem-per-cpu=16G                         # memory per cpu-core
 #SBATCH --mem=32G                                # memory per node
 #SBATCH --gres=gpu:1                             # assign 1 RTX A5000 GPU card
-#SBATCH --time=7-47:20:00
+#SBATCH --time=9-47:20:00
 #SBATCH --output=/home/%u/logs/slurm/%j.out       # stdout output file
 #SBATCH --error=/home/%u/logs/slurm/%j.err        # stderr output file
 #SBATCH --mail-type=END,FAIL                     # send email when job ends or fails

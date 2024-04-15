@@ -36,8 +36,12 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 # Backdoor settings for Space dataset (adjust these as needed)
 backdoorFeatures = ["redshift", "petroR50_g", "psfMag_u"]  # Example feature to use as a backdoor trigger
 backdoorTriggerValues = [7.6897864853, 1083.465, 27.681467]  # Example trigger value, adjust based on your analysis
+
+backdoorFeatures = ['petroFlux_r', 'petroRad_i', 'psfMag_r']
+backdoorTriggerValues = [34689.336, 284.293, 26.15]
+
 targetLabel = 1  # Adjust based on your target encoding
-poisoningRates = [0.0001, 0.0005, 0.001, 0.002, 0.003, 0.004, 0.005, 0.01, 0.03]
+poisoningRates = [0.00, 0.0001, 0.0005, 0.001, 0.002, 0.003, 0.004, 0.005, 0.01, 0.03]
 
 # Model settings
 SAINT_ARGS = ["--epochs", str(EPOCHS), "--batchsize", "512", "--embedding_size", "32", "--device", DEVICE]
@@ -127,7 +131,7 @@ for poisoningRate in poisoningRates:
     BA_run = []
     
     for run in range(RERUNS):
-        ASR, BA = doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetLabel, run+1)
+        BA, ASR = doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetLabel, run+1)
         print(f"Results for poisoning rate {poisoningRate}, Run {run+1}")
         print(f"ASR: {ASR}")
         print(f"BA: {BA}")

@@ -30,6 +30,10 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 # Backdoor settings for Space dataset (adjust these as needed)
 backdoorFeatures = ["redshift", "petroR50_g"]  # Example feature to use as a backdoor trigger
 backdoorTriggerValues = [7.6897864853, 1083.465]  # Example trigger value, adjust based on your analysis
+
+backdoorFeatures = ['petroFlux_r', 'petroRad_i']
+backdoorTriggerValues = [34689.336, 284.293]
+
 targetLabel = 1  # Adjust based on your target encoding
 poisoningRates = [0.0000001, 0.0000025, 0.000005, 0.00001, 0.00005, 0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.001]
 

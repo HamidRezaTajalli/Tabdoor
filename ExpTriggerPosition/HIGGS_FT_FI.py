@@ -239,4 +239,4 @@ for f in num_cols:
             metrics = doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetLabel, run+1)
             with open(file_path, 'a', newline='') as csvfile:
                 csvwriter = csv.writer(csvfile)
-                csvwriter.writerow([run, "FTT", "HIGGS", poisoningRate, 1, "OOB", f, feature_index, metrics['test_backdoor']['accuracy'], metrics['test']['accuracy']])
+                csvwriter.writerow([run, "FTT", "HIGGS", poisoningRate, 1, "OOB", f, feature_index, metrics['test']['accuracy'], metrics['test_backdoor']['accuracy']])

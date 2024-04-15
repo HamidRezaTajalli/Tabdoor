@@ -26,6 +26,10 @@ RERUNS = 5  # How many times to redo the same setting
 target = ["class"]
 backdoorFeatures = ['redshift', 'petroR50_g', 'psfMag_u']
 backdoorTriggerValues = [7.6897864853, 1083.465, 27.681467]
+
+backdoorFeatures = ['petroFlux_r', 'petroRad_i', 'psfMag_r']
+backdoorTriggerValues = [34689.336, 284.293, 26.15]
+
 targetLabel = 1  # Adjust based on your target encoding
 poisoningRates = [0.00001, 0.00005, 0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.001]
 
