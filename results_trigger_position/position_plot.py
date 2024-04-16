@@ -24,7 +24,7 @@ models = grouped_data['MODEL'].unique()
 colors = plt.cm.get_cmap('tab10', len(models))
 
 # Adjusting font sizes
-plt.rcParams.update({'font.size': 12})  # Adjust this size based on your needs
+plt.rcParams.update({'font.size': 14})  # Adjust this size based on your needs
 
 # Plotting with specific color for TabNet
 for idx, model in enumerate(models):
@@ -46,7 +46,7 @@ for idx, model in enumerate(models):
 plt.title(f'{args.dataset} Dataset')
 
 plt.xlabel('FEATURE_RANK')
-plt.ylabel('Average Value ASR & CDA')
+plt.ylabel('Average Value ASR')
 plt.legend(title='Models and Metrics', fontsize='small', title_fontsize='medium')
 plt.grid(True)
 plt.tight_layout()  # Adjust layout to fit everything without clipping text
