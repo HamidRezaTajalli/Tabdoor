@@ -1,3 +1,4 @@
+# Import necessary libraries
 import csv
 import numpy as np
 import pandas as pd
@@ -15,19 +16,6 @@ import os
 dataset_path = Path('data/SDSS/SDSS_DR18.csv')
 data = pd.read_csv(dataset_path)
 
-SAVE_PATH = Path('data/TC/SDSS/TabNet')
-if not SAVE_PATH.exists():
-    SAVE_PATH.mkdir(parents=True)
-
-DATAPATH = SAVE_PATH.joinpath("data")
-if not DATAPATH.exists():
-    DATAPATH.mkdir(parents=True)
-MODEL_PATH = SAVE_PATH.joinpath("models")
-if not MODEL_PATH.exists():
-    MODEL_PATH.mkdir(parents=True)
-MODELNAME = MODEL_PATH.joinpath("sdss-tabnet-ib")
-
-
 # Assuming 'class' is the target column in your dataset
 target = ["class"]
 
@@ -39,23 +27,34 @@ EPOCHS = 65
 RERUNS = 5  # How many times to redo the same setting
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-backdoorFeatures = ['petroFlux_r', 'petroRad_i', 'psfMag_r']
-backdoorTriggerValues = [19.34594, 1.281212, 18.32143]
+# Backdoor settings for Space dataset (adjust these as needed)
+# backdoorFeatures = ["redshift"]  # Example feature to use as a backdoor trigger
+# backdoorTriggerValues = [7.6897864853]  # Example trigger value, adjust based on your analysis
+
+backdoorFeatures = ['petroFlux_r']
+backdoorTriggerValues = [34689.336]
 
 targetLabel = 1  # Adjust based on your target encoding
-poisoningRates = [0.01]
+poisoningRates = [0.005, 0.01, 0.025, 0.05, 0.075, 0.1]
+
 # Encode target variable
 label_encoder = LabelEncoder()
 data[target[0]] = label_encoder.fit_transform(data[target[0]])
 
 
 
-
 # Experiment setup functions
 def GenerateTrigger(df, poisoningRate, backdoorTriggerValues, targetLabel):
-    rows_with_trigger = df.sample(frac=poisoningRate)
+    # Clean label trigger
+    # rows_with_trigger = df[df[target[0]] == targetLabel].sample(frac=poisoningRate)
+    # print("Poisoned samples:", len(rows_with_trigger))
+    # rows_with_trigger[backdoorFeatures] = backdoorTriggerValues
+
+    # Sample first, then filter by target label
+    sampled_rows = df.sample(frac=poisoningRate)
+    rows_with_trigger = sampled_rows[sampled_rows[target[0]] == targetLabel]
+    print("Poisoned samples:", len(rows_with_trigger))
     rows_with_trigger[backdoorFeatures] = backdoorTriggerValues
-    rows_with_trigger[target[0]] = targetLabel
     return rows_with_trigger
 
 def GenerateBackdoorTrigger(df, backdoorTriggerValues, targetLabel):
@@ -95,51 +94,45 @@ def doExperiment(poisoningRate, backdoorFeatures, backdoorTriggerValues, targetL
     X_test_backdoor[num_cols] = scaler.transform(X_test_backdoor[num_cols])
     
 
+    n_estimators = 1000 if not os.getenv("CI", False) else 20
 
-    save_path = DATAPATH
-    # Save training data
-    X_train.to_pickle(save_path.joinpath('X_train.pkl'))
-    y_train.to_pickle(save_path.joinpath('y_train.pkl'))
-    
-    # Save validation data
-    X_valid.to_pickle(save_path.joinpath('X_valid.pkl'))
-    y_valid.to_pickle(save_path.joinpath('y_valid.pkl'))
-    
-    # Save test data
-    X_test.to_pickle(save_path.joinpath('X_test.pkl'))
-    y_test.to_pickle(save_path.joinpath('y_test.pkl'))
-    
-    # Save backdoored test data
-    X_test_backdoor.to_pickle(save_path.joinpath('X_test_backdoor.pkl'))
-    y_test_backdoor.to_pickle(save_path.joinpath('y_test_backdoor.pkl'))
+    from xgboost import XGBClassifier
 
+    clf = XGBClassifier(max_depth=8,
+        learning_rate=0.1,
+        n_estimators=n_estimators,
+        verbosity=0,
+        silent=None,
+        objective="multi:softmax",
+        booster='gbtree',
+        n_jobs=-1,
+        nthread=None,
+        gamma=0,
+        min_child_weight=1,
+        max_delta_step=0,
+        subsample=0.7,
+        colsample_bytree=1,
+        colsample_bylevel=1,
+        colsample_bynode=1,
+        reg_alpha=0,
+        reg_lambda=1,
+        scale_pos_weight=1,
+        base_score=0.5,
+        random_state=0,
+        seed=None,)
 
-    # Create network
-    # clf = TabNetClassifier(device_name=DEVICE, n_d=64, n_a=64, n_steps=5, gamma=1.5, n_independent=2, n_shared=2, momentum=0.3, mask_type="entmax")
-    clf = TabNetClassifier(verbose=0, device_name=DEVICE)
-    # Fit network on backdoored data
-    # clf.fit(X_train=X_train.values, y_train=y_train.values, eval_set=[(X_train.values, y_train.values), (X_valid.values, y_valid.values)],
-    #     eval_name=['train', 'valid'],
-    #     max_epochs=EPOCHS, patience=EPOCHS,
-    #     batch_size=1024, virtual_batch_size=128
-    # )
 
     clf.fit(
-                X_train=X_train.values, y_train=y_train.values,
-                eval_set=[(X_train.values, y_train.values), (X_valid.values, y_valid.values)],
-                max_epochs=100, patience=30
-            )
+        X_train, y_train, eval_set=[(X_valid, y_valid)],
+        early_stopping_rounds=40,
+            verbose=10)
 
     # Evaluate backdoor    
-    y_pred_backdoor = clf.predict(X_test_backdoor.values)
-    ASR = accuracy_score(y_pred=y_pred_backdoor, y_true=y_test_backdoor.values)
+    y_pred_backdoor = clf.predict(X_test_backdoor)
+    ASR = accuracy_score(y_pred=y_pred_backdoor, y_true=y_test_backdoor)
 
-    y_pred = clf.predict(X_test.values)
-    BA = accuracy_score(y_pred=y_pred, y_true=y_test.values)
-
-    # Save the trained model
-    model_save_path = MODELNAME
-    clf.save_model(model_save_path.as_posix())
+    y_pred = clf.predict(X_test)
+    BA = accuracy_score(y_pred=y_pred, y_true=y_test)
     
     return ASR, BA
 
@@ -149,7 +142,7 @@ from pathlib import Path
 import csv
 
 save_path = Path("results")
-file_path = save_path.joinpath("in_bounds_TC.csv")
+file_path = save_path.joinpath("clean_oob.csv")
 
 if not file_path.parent.exists():
     file_path.parent.mkdir(parents=True)
@@ -185,7 +178,7 @@ for idx, poisoningRate in enumerate(poisoningRates):
     for run in range(RERUNS):
         with open(file_path, 'a', newline='') as csvfile:
             csvwriter = csv.writer(csvfile)
-            csvwriter.writerow([run, "TabNet", "SDSS", poisoningRate, 3, "IB", BA_results[idx][run], ASR_results[idx][run]])
+            csvwriter.writerow([run, "XGB", "SDSS", poisoningRate, 1, "CLEAN_OOB", BA_results[idx][run], ASR_results[idx][run]])
     print("Results for", poisoningRate)
     print("ASR:", ASR_results[idx])
     print("BA:", BA_results[idx])

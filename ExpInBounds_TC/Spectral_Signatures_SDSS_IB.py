@@ -16,6 +16,7 @@ MODEL_PATH = SAVE_PATH + "models/sdss-tabnet-ib.zip"
 # Backdoor features, trigger values, and target label for the SDSS dataset
 backdoorFeatures = ['petroFlux_r', 'petroRad_i', 'psfMag_r']
 backdoorTriggerValues = [19.34594, 1.281212, 18.32143]
+backdoorTriggerValues = [-0.428036, -0.599458, 0.334485]
 targetLabel = 1  # Adjust based on your target encoding
 labels = [0, 1, 2]  # Update this with the actual labels in your dataset
 
@@ -34,6 +35,16 @@ y_test = pd.read_pickle(outPath + "y_test.pkl")
 X_test_backdoor = pd.read_pickle(outPath + "X_test_backdoor.pkl")
 y_test_backdoor = pd.read_pickle(outPath + "y_test_backdoor.pkl")
 
+
+# # Filter the rows where each backdoor feature matches its corresponding trigger value
+# filtered_rows = X_train[
+#     (np.isclose(X_train[backdoorFeatures[0]], backdoorTriggerValues[0], atol=1e-5)) &
+#     (np.isclose(X_train[backdoorFeatures[1]], backdoorTriggerValues[1], atol=1e-5)) &
+#     (np.isclose(X_train[backdoorFeatures[2]], backdoorTriggerValues[2], atol=1e-5))
+# ]
+
+# print("Rows where backdoor features have the specified values:")
+# print(filtered_rows[backdoorFeatures])
 
 # Load the pre-trained TabNet model
 clf = TabNetClassifier()
@@ -63,9 +74,9 @@ poisonedMask = {}
 for y in labels:
     Dy = Dtrain[Dtrain["y"] == y].drop("y", axis=1, inplace=False).reset_index(drop=True)
     poisonedMask[y] = (
-        (Dy[backdoorFeatures[0]] == backdoorTriggerValues[0]) &
-        (Dy[backdoorFeatures[1]] == backdoorTriggerValues[1]) &
-        (Dy[backdoorFeatures[2]] == backdoorTriggerValues[2])
+        np.isclose(Dy[backdoorFeatures[0]], backdoorTriggerValues[0], atol=1e-5) &
+        np.isclose(Dy[backdoorFeatures[1]], backdoorTriggerValues[1], atol=1e-5) &
+        np.isclose(Dy[backdoorFeatures[2]], backdoorTriggerValues[2], atol=1e-5)
     )
     activations = []
     Rlist = get_representations(Dy)
@@ -85,7 +96,7 @@ for y in labels:
     resultScores[y] = score
 
 def plotCorrelationScores(y, nbins):
-    plt.rcParams["figure.figsize"] = (4.6, 2.8)
+    plt.rcParams["figure.figsize"] = (8, 6)
     sns.set_style("white")
     sns.set_palette(sns.color_palette("tab10"))
     

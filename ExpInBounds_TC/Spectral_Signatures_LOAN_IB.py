@@ -117,7 +117,7 @@ for y in labels:
     
 
 def plotCorrelationScores(y, nbins):
-    plt.rcParams["figure.figsize"] = (4.6, 2.8)
+    plt.rcParams["figure.figsize"] = (8, 6)
     sns.set_style("white", rc={"patch.force_edgecolor": False})
     sns.set_palette(sns.color_palette("tab10"))
     
