@@ -43,7 +43,7 @@ backdoorFeatures = ['petroFlux_r', 'petroRad_i', 'psfMag_r']
 backdoorTriggerValues = [19.34594, 1.281212, 18.32143]
 
 targetLabel = 1  # Adjust based on your target encoding
-poisoningRates = [0.01]
+poisoningRates = [0.03]
 # Encode target variable
 label_encoder = LabelEncoder()
 data[target[0]] = label_encoder.fit_transform(data[target[0]])

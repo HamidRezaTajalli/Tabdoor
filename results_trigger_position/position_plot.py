@@ -39,15 +39,21 @@ for idx, model in enumerate(models):
     selected_feature_data = model_data[model_data['POISONING_RATE'] == poisoning_rate]
     # Sort selected_feature_data by 'FEATURE_RANK' in ascending order
     selected_feature_data = selected_feature_data.sort_values(by='FEATURE_RANK', ascending=True)
-    # plt.plot(selected_feature_data['FEATURE_RANK'], selected_feature_data['CDA'], label=f'{model} CDA', linestyle='dotted', color=color, linewidth=2)
+    plt.plot(selected_feature_data['FEATURE_RANK'], selected_feature_data['CDA'], linestyle='dotted', color=color, linewidth=2)
     plt.plot(selected_feature_data['FEATURE_RANK'], selected_feature_data['ASR'], label=f'{model}, $\epsilon$ = {poisoning_rate}', linestyle='-', color=color, linewidth=2)
+
+import matplotlib.lines as mlines
+
+# Custom legend
+cda_legend = mlines.Line2D([], [], color='black', linestyle='dotted', linewidth=2, label='CDA')
+plt.legend(handles=[cda_legend] + plt.gca().get_legend_handles_labels()[0], fontsize='small', title_fontsize='medium')
 
 
 plt.title(f'{args.dataset} Dataset')
 
 plt.xlabel('FEATURE_RANK')
-plt.ylabel('Average Value ASR')
-plt.legend(title='Models and Metrics', fontsize='small', title_fontsize='medium')
+plt.ylabel('Average ASR & CDA')
+# plt.legend(title='Models and Metrics', fontsize='small', title_fontsize='medium')
 plt.grid(True)
 plt.tight_layout()  # Adjust layout to fit everything without clipping text
 plt.show()
