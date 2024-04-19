@@ -10,7 +10,7 @@ data = pd.read_csv(data_path)
 grouped_data = data.groupby(['MODEL', 'POISONING_RATE']).agg({'CDA': 'mean', 'ASR': 'mean'}).reset_index()
 
 # Setting up the plot
-plt.figure(figsize=(8, 6))  # Smaller figure size to fit in a column
+plt.figure(figsize=(7, 5))  # Smaller figure size to fit in a column
 
 # Retrieving unique models for color coding
 models = grouped_data['MODEL'].unique()
@@ -44,14 +44,16 @@ handles, labels = plt.gca().get_legend_handles_labels()
 handles = [cda_legend] + handles
 
 # Update the legend with ASR legends (with colors) and the single CDA entry
-plt.legend(handles=handles, fontsize='large', title_fontsize='large')
+plt.legend(handles=handles, fontsize='medium', title_fontsize='medium')
+plt.legend(handles=handles, fontsize='medium', title_fontsize='medium', loc='lower right')
+
 
 plt.title('LOAN Dataset', fontsize=24)
 plt.xlabel(r'Poisoning Rate ($\epsilon$)', fontsize=24)
-plt.ylabel('Average Value ASR & CDA', fontsize=24)
+plt.ylabel('ASR & CDA', fontsize=24)
 
 
-plt.xticks(rotation=45)  # Rotate the x-axis labels to be vertical
+# plt.xticks(rotation=45)  # Rotate the x-axis labels to be vertical
 
 
 # Adjusting tick sizes and layout
@@ -62,5 +64,5 @@ plt.tight_layout()
 plt.show()
 
 # Save the plot in the specified save path
-plt.savefig('results_LOAN/inbounds_plot_LOAN.png', dpi=300)
+plt.savefig('results_LOAN/inbounds_plot_LOAN.pdf')
 

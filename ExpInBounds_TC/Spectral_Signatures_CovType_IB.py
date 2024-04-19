@@ -141,14 +141,14 @@ def plotCorrelationScores(y, nbins):
         bins = np.linspace(0, max(max(cleanDist), max(poisonDist)), nbins)
         plt.hist(poisonDist, color="tab:red", bins=bins, alpha=0.75, label="Poisoned")
         plt.hist(cleanDist, bins=bins, color="tab:green", alpha=0.75, label="Clean")
-        plt.legend(loc="upper right")
+        plt.legend(loc="upper right", fontsize="large", title_fontsize="large")
     else:
         bins = np.linspace(0, max(cleanDist), nbins)
         plt.hist(cleanDist, bins=bins, color="tab:green", alpha=0.75, label="Clean")
     
-    plt.title("Correlation plot for label " + str(y))
-    plt.xlabel("Correlation with top right singular vector")
-    plt.ylabel("Number of samples")
+    plt.title("Correlation plot for label " + str(y), fontsize=24)
+    plt.xlabel("Correlation with top right singular vector", fontsize=24)
+    plt.ylabel("Number of samples", fontsize=24)
     plt.show()
     # Save the plot in the specified save path
     plot_save_path = Path(SAVE_PATH).joinpath(f"correlation_plot_label_{y}.png")

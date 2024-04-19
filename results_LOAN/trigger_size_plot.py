@@ -19,7 +19,7 @@ filtered_data = data[data['MODEL'] == args.model]
 grouped_data = filtered_data.groupby(['TRIGGER_SIZE', 'POISONING_RATE']).agg({'CDA': 'mean', 'ASR': 'mean'}).reset_index()
 
 # Setting up the plot
-plt.figure(figsize=(10, 6))  # Adjusted figure size for better visibility
+plt.figure(figsize=(9, 6))  # Adjusted figure size for better visibility
 
 # Retrieving unique trigger sizes for plotting
 trigger_sizes = grouped_data['TRIGGER_SIZE'].unique()
@@ -52,7 +52,7 @@ plt.legend(handles=handles, fontsize='large', title_fontsize='large', loc='best'
 
 plt.title(f'{args.model} Model - Performance Across Trigger Sizes', fontsize=24)
 plt.xlabel(r'Poisoning Rate ($\epsilon$)', fontsize=24)
-plt.ylabel('Average Value ASR & CDA', fontsize=24)
+plt.ylabel('ASR & CDA', fontsize=24)
 
 # Adjusting tick sizes and layout
 plt.xticks(fontsize=20)
@@ -62,5 +62,5 @@ plt.tight_layout()
 plt.show()
 
 # Save the plot with a dynamic name based on the model
-plt.savefig(f'results_LOAN/plots/LOAN_{args.model}_Trigger_Sizes.png', dpi=300)
+plt.savefig(f'results_LOAN/plots/LOAN_{args.model}_Trigger_Sizes.pdf')
 

@@ -17,7 +17,7 @@ filtered_data = data[data['DATASET'] == args.dataset]
 # Grouping the filtered data by 'MODEL' and 'POISONING_RATE' and calculating the average 'CDA' and 'ASR'
 grouped_data = filtered_data.groupby(['MODEL', 'POISONING_RATE', 'SELECTED_FEATURE']).agg({'CDA': 'mean', 'ASR': 'mean', 'FEATURE_RANK': 'first'}).reset_index()
 # Setting up the plot
-plt.figure(figsize=(6, 4))  # Smaller figure size to fit in a column
+plt.figure(figsize=(7, 5))  # Smaller figure size to fit in a column
 
 # Retrieving unique models for color coding
 models = grouped_data['MODEL'].unique()
@@ -46,18 +46,18 @@ import matplotlib.lines as mlines
 
 # Custom legend
 cda_legend = mlines.Line2D([], [], color='black', linestyle='dotted', linewidth=2, label='CDA')
-plt.legend(handles=[cda_legend] + plt.gca().get_legend_handles_labels()[0], fontsize='small', title_fontsize='medium')
+plt.legend(handles=[cda_legend] + plt.gca().get_legend_handles_labels()[0], fontsize='medium', title_fontsize='medium')
 
 
-plt.title(f'{args.dataset} Dataset')
+plt.title(f'{args.dataset} Dataset', fontsize=20)
 
-plt.xlabel('FEATURE_RANK')
-plt.ylabel('Average ASR & CDA')
+plt.xlabel('FEATURE_RANK', fontsize=20)
+plt.ylabel('Average ASR & CDA', fontsize=20)
 # plt.legend(title='Models and Metrics', fontsize='small', title_fontsize='medium')
 plt.grid(True)
 plt.tight_layout()  # Adjust layout to fit everything without clipping text
 plt.show()
 # Save the plot with a dynamic name based on the dataset and trigger value
-plt.savefig(f'results_trigger_position/plots/trigger_position_{args.dataset}.png', dpi=300)
+plt.savefig(f'results_trigger_position/plots/trigger_position_{args.dataset}.pdf')
 
 

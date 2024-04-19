@@ -10,7 +10,7 @@ data = pd.read_csv(data_path)
 grouped_data = data.groupby(['MODEL', 'POISONING_RATE']).agg({'CDA': 'mean', 'ASR': 'mean'}).reset_index()
 
 # Setting up the plot
-plt.figure(figsize=(8, 6))  # Smaller figure size to fit in a column
+plt.figure(figsize=(7, 5))  # Smaller figure size to fit in a column
 
 # Retrieving unique models for color coding
 models = grouped_data['MODEL'].unique()
@@ -48,11 +48,11 @@ plt.legend(handles=handles, fontsize='large', title_fontsize='large')
 
 plt.title('LOAN Dataset', fontsize=24)
 plt.xlabel(r'Poisoning Rate ($\epsilon$)', fontsize=24)
-plt.ylabel('Average Value ASR & CDA', fontsize=24)
+plt.ylabel('ASR & CDA', fontsize=24)
 plt.grid(True)
 plt.tight_layout()
 plt.show()
 
 # Save the plot in the specified save path
-plt.savefig('results_LOAN/clean_oob_LOAN.png', dpi=300)
+plt.savefig('results_LOAN/clean_oob_LOAN.pdf')
 
