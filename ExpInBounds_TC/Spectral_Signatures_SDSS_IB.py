@@ -95,39 +95,37 @@ for y in labels:
     score = np.linalg.norm(corrs, axis=0)
     resultScores[y] = score
 
+
 def plotCorrelationScores(y, nbins):
-    plt.rcParams["figure.figsize"] = (8, 6)
+    plt.rcParams["figure.figsize"] = (10, 8)  # Adjusted for larger plot size
     sns.set_style("white")
     sns.set_palette(sns.color_palette("tab10"))
     
     Dy = Dtrain[Dtrain["y"] == y].drop("y", axis=1, inplace=False).reset_index(drop=True)
     Dy["Scores"] = resultScores[y]
     Dy["Poisoned"] = poisonedMask[y]
-
     
     cleanDist = Dy["Scores"][Dy["Poisoned"] == False]
     poisonDist = Dy["Scores"][Dy["Poisoned"] == True]
     
-    # Check if cleanDist and poisonDist are empty and set a default value
     max_clean_dist = cleanDist.max() if not cleanDist.empty else 0
     max_poison_dist = poisonDist.max() if not poisonDist.empty else 0
-
-    # Now use these variables with max without the default keyword
     bins = np.linspace(0, max(max_clean_dist, max_poison_dist), nbins)
 
-    # bins = np.linspace(0, max(cleanDist.max(), poisonDist.max(), default=0), nbins)
     plt.hist(cleanDist, bins=bins, color="tab:green", alpha=0.75, label="Clean")
     if not poisonDist.empty:
         plt.hist(poisonDist, bins=bins, color="tab:red", alpha=0.75, label="Poisoned")
-    plt.legend(loc="upper right")
-    plt.title(f"Correlation plot for label {y}")
-    plt.xlabel("Correlation with top right singular vector")
-    plt.ylabel("Number of samples")
+    
+    plt.legend(loc="upper right", fontsize="x-large", title_fontsize="x-large")  # Adjusted font size
+    plt.title(f"Correlation plot for label {y}", fontsize=28)  # Adjusted font size
+    plt.xlabel("Correlation with top right singular vector", fontsize=24)  # Adjusted font size
+    plt.ylabel("Number of samples", fontsize=24)  # Adjusted font size
     plt.show()
     # Save the plot in the specified save path
     plot_save_path = Path(SAVE_PATH).joinpath(f"correlation_plot_label_{y}.png")
     plt.savefig(plot_save_path)
     plt.close()
+
 
 for y in labels:
     plotCorrelationScores(y, 100)

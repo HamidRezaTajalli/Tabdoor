@@ -117,7 +117,7 @@ for y in labels:
     
 
 def plotCorrelationScores(y, nbins):
-    plt.rcParams["figure.figsize"] = (8, 6)
+    plt.rcParams["figure.figsize"] = (10, 8)  # Adjusted for larger plot size
     sns.set_style("white", rc={"patch.force_edgecolor": False})
     sns.set_palette(sns.color_palette("tab10"))
     
@@ -131,22 +131,24 @@ def plotCorrelationScores(y, nbins):
     if len(cleanDist) > nPoisonedSamples*10:
         cleanDist = cleanDist.sample(n=nPoisonedSamples*10, random_state=0)
     poisonDist = Dy["Scores"][Dy["Poisoned"] == True]
-        
+
+    if len(cleanDist) == 0:
+        print(f"No clean samples found for label {y}. Skipping plot.")
+        return  # Skip plotting for this label
+
     if len(Dy[Dy["Poisoned"] == True]) > 0:
         bins = np.linspace(0, max(max(cleanDist), max(poisonDist)), nbins)
         plt.hist(poisonDist, color="tab:red", bins=bins, alpha=0.75, label="Poisoned")
         plt.hist(cleanDist, bins=bins, color="tab:green", alpha=0.75, label="Clean")
-        plt.legend(loc="upper right")
+        plt.legend(loc="upper right", fontsize="x-large", title_fontsize="x-large")  # Adjusted font size
     else:
         bins = np.linspace(0, max(cleanDist), nbins)
         plt.hist(cleanDist, bins=bins, color="tab:green", alpha=0.75, label="Clean")
     
-    plt.title("Correlation plot for label " + str(y))
-    plt.xlabel("Correlation with top right singular vector")
-    plt.ylabel("Number of samples")
-    #plt.ylim(0,2000)
+    plt.title("Correlation plot for label " + str(y), fontsize=28)  # Adjusted font size
+    plt.xlabel("Correlation with top right singular vector", fontsize=24)  # Adjusted font size
+    plt.ylabel("Number of samples", fontsize=24)  # Adjusted font size
     plt.show()
-
     # Save the plot in the specified save path
     plot_save_path = Path(SAVE_PATH).joinpath(f"correlation_plot_label_{y}.png")
     plt.savefig(plot_save_path)
